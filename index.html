@@ -24,8 +24,8 @@
         body {
             background-color: #f4f7f6;
             font-family: 'Cairo', sans-serif;
-            font-size: 13px;
-            color: var(--text-dark);
+            font-size: 12px;
+            color:black;
         }
 
         /* شاشة الدخول */
@@ -86,8 +86,8 @@
         .sig-cell { height: 60px; vertical-align: bottom; color: #555; font-size: 11px; background: #fafafa; }
 
         .total-banner {
-            background-color: var(--alrowda-orange) !important;
-            color: white !important; font-weight: 800; font-size: 16px;
+            /* background-color:  !important; */
+            color: rgb(10, 0, 0) !important; font-weight: 800; font-size: 16px;
         }
 
         .no-print-btn {
@@ -295,6 +295,8 @@
 </div>
 
 <div id="mainContent" class="a4-container" style="display:none;">
+    
+<main style="border: solid #1a953e 3px; position: relative; background-color: #ffffff; border-radius: 1%;">
     <div class="header-brand d-flex justify-content-between align-items-center">
         <div class="title-text">
             <h5>نموذج تقييم أداء الوظائف التخصصية</h5>
@@ -304,8 +306,7 @@
         </div>
         <img src="logo.jpeg" alt="Logo" style="height: 60px;">
     </div>
-
-    <table class="table table-bordered align-middle">
+  <table class="table table-bordered align-middle">
         <tr>
             <td class="bg-light-row" width="15%">اسم الموظف</td>
             <td width="35%"><input type="text" id="empName" class="form-control form-control-sm border-0"></td>
@@ -323,15 +324,14 @@
             <td><input type="date" id="hireDate" value="2024-01-01"></td>
         </tr>
     </table>
-
-    <table class="table table-bordered text-center">
+ <table class="table table-bordered text-center">
         <thead>
             <tr>
                 <th width="30">م</th>
                 <th>عناصر التقييم</th>
                 <th width="50">الأعلى</th>
                 <th width="60">الدرجة</th>
-                <th width="30">م</th>
+                <th width="30" >م</th>
                 <th>عناصر التقييم</th>
                 <th width="50">الأعلى</th>
                 <th width="60">الدرجة</th>
@@ -340,13 +340,12 @@
         <tbody id="evalBody"></tbody>
         <tfoot>
             <tr>
-                <td colspan="6" class="total-banner text-end">النتيجة النهائية المكتسبة (Total Score):</td>
+                <td colspan="6" class="total-banner text-center bg-light-row ">النتيجة النهائية المكتسبة (Total Score):</td>
                 <td colspan="2" class="total-banner"><span id="total">0</span> / 100</td>
             </tr>
         </tfoot>
     </table>
-
-    <table class="table table-bordered text-center">
+  <table class="table table-bordered text-center">
         <thead>
             <tr>
                 <th width="33%">نقاط القوة</th>
@@ -362,8 +361,7 @@
             </tr>
         </tbody>
     </table>
-
-    <table class="table table-bordered text-center">
+ <table class="table table-bordered text-center">
         <thead>
             <tr>
                 <th width="33%">مصادقة الموظف</th>
@@ -372,16 +370,21 @@
             </tr>
         </thead>
         <tbody>
-              <tr>
-                <td class="sig-cell">التوقيع  :------------------</td>
-                <td class="sig-cell">التوقيع   :------------------</td>
-                <td class="sig-cell">  التوقيع  :------------------</td>
-            </tr>
+          <tr>
+ <td class="sig-cell">التوقيع  :------------------</td>
+ <td class="sig-cell">التوقيع   :------------------</td>
+ <td class="sig-cell">  التوقيع  :------------------</td>
+ </tr>
         </tbody>
     </table>
-
+    <br>
+ <div class="text-muted small fw-bold"
+         style="position:absolute; bottom:5px; left:10px;">
+        REC-QF-20-30/Rev02
+    </div>
+</main>
+  
     <div class="d-flex justify-content-between align-items-center mt-auto">
-        <div class="text-muted small fw-bold align-content-end">REC-QF-20-30/Rev02</div>
         <div class="no-print">
             <button id="sendBtn" class="btn btn-success no-print-btn" onclick="submitData()">
                 <i class="fas fa-print me-2"></i> إرسال وحفظ التقييم
@@ -395,16 +398,16 @@
     let currentManagerID = "";
 
     const evalItems = [
-        {id: 1, txt: "معرفة الأهداف المنشودة", max: 4, id2: 12, txt2: "معرفة تفاصيل المهام", max2: 4},
-        {id: 2, txt: "الاهتمام والمسؤولية", max: 4, id2: 13, txt2: "سرعة أداء المهام", max2: 4},
-        {id: 3, txt: "جودة وسلامة العمل", max: 4, id2: 14, txt2: "سرعة إنجاز الأعمال", max2: 4},
-        {id: 4, txt: "التعاون مع الزملاء", max: 4, id2: 15, txt2: "الدقة في أداء الأعمال", max2: 4},
-        {id: 5, txt: "التعاون مع الآخرين", max: 4, id2: 16, txt2: "تحمل أعباء ومسؤوليات أعلى", max2: 4},
-        {id: 6, txt: "المظهر والتصرف", max: 4, id2: 17, txt2: "توضيح وشرح المهام", max2: 4},
-        {id: 7, txt: "القدرة على التطوير والابتكار", max: 4, id2: 18, txt2: "الالتزام بالدوام الرسمي", max2: 4},
-        {id: 8, txt: "الرغبة في التعلم الذاتي", max: 4, id2: 19, txt2: "الالتزام بأخلاقيات العمل", max2: 4},
-        {id: 9, txt: "احترام الأنظمة والتعليمات", max: 4, id2: 20, txt2: "اهتمام بتطوير المهارات", max2: 4},
-        {id: 10, txt: "مستوى مدى المعرفة", max: 4, id2: 21, txt2: "المحافظة على الأمن", max2: 4},
+       {id: 1,  txt: "مستوى تحقيقه للأهداف المنشودة", max: 4, id2: 11, txt2: "مستوى معرفته بتفاصيل مهام وظيفته", max2: 4},
+    {id: 2,  txt: "درجة الاعتماد عليه وتحمل المسئولية", max: 4, id2: 12, txt2: "مستوى خبرته في أداء مهام وظيفته", max2: 4},
+    {id: 3,  txt: "مستوى تعاونه مع زملائه في العمل", max: 4, id2: 13, txt2: "السرعة في إنجاز الأعمال المكلف بها", max2: 4},
+    {id: 4,  txt: "مستوى تعاونه مع رؤسائه في العمل", max: 4, id2: 14, txt2: "الدقة في أداء الأعمال المكلف بها", max2: 4},
+    {id: 5,  txt: "مستوى تعاونه مع الآخرين", max: 4, id2: 15, txt2: "إمكانية تحمله لمهام ومسؤوليات أعلى", max2: 4},
+    {id: 6,  txt: "البديهة وحسن التصرف", max: 4, id2: 16, txt2: "الحرص على ترتيب وتنظيم ونظافة مكان عمله", max2: 4},
+    {id: 7,  txt: "مدى قدرته على تطوير وابتكار أساليب العمل", max: 4, id2: 17, txt2: "مدى التزامه بأوقات الدوام الرسمي", max2: 4},
+    {id: 8,  txt: "رغبته في التعلم والتطوير الذاتي", max: 4, id2: 18, txt2: "مدى التزامه بمعايير وأخلاقيات العمل", max2: 4},
+    {id: 9,  txt: "مدى احترامه لأنظمة وتعليمات العمل", max: 4, id2: 19, txt2: "مدى اهتمامه بحسن مظهره ونظافته", max2: 4},
+    {id: 10, txt: "العمل بروح الفريق", max: 4, id2: 20, txt2: "المحافظة على أدوات العمل", max2: 4},
         {id: 11, txt: "التأخير والغياب", max: 10, id2: 22, txt2: "المخالفات الوظيفية", max2: 10},
     ];
 
@@ -412,11 +415,11 @@
     evalItems.forEach(item => {
         body.innerHTML += `
             <tr>
-                <td class="bg-light">${item.id}</td>
+                <td class="text-white" style="background-color:#faa619">${item.id}</td>
                 <td class="text-start ps-2">${item.txt}</td>
                 <td class="max-score-col">${item.max}</td>
                 <td><input type="number" class="score-input" oninput="validateInput(this, ${item.max})"></td>
-                <td class="bg-light">${item.id2}</td>
+                <td class="text-white"  style="background-color:#faa619">${item.id2}</td>
                 <td class="text-start ps-2">${item.txt2}</td>
                 <td class="max-score-col">${item.max2}</td>
                 <td><input type="number" class="score-input" oninput="validateInput(this, ${item.max2})"></td>
