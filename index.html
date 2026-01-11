@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نموذج تقييم الأداء الوظيفي - شركة الروضة</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --primary-green: #1a953e;
+            --accent-orange: #faa619;
+            --light-green: #f1f8f1;
+        }
+
+        /* شاشة تسجيل الدخول */
+        #authOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.98); z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .auth-card {
+            background: white; padding: 40px; border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 2px solid var(--primary-green);
+            max-width: 400px; width: 90%; text-align: center;
+        }
+
+        #mainContent { display: none; } /* مخفي حتى يتم التحقق */
+
+        @media print {
+            @page { size: A4; margin: 0; }
+            body { margin: 0; padding: 0; background-color: white !important; }
+            .no-print, #authOverlay { display: none !important; }
+            .a4-container { margin: 0 !important; box-shadow: none !important; border: 2px solid var(--primary-green) !important; height: 296mm !important; padding: 10mm !important; }
+            .form-control { border: none !important; }
+        }
+
+        body { background-color: #f4f4f4;  font-family: 'Cairo', sans-serif !important;
+ }
+
+        .a4-container {
+            width: 210mm; min-height: 297mm; padding: 12mm; margin: 10mm auto;
+            background: white; box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            position: relative; border: 3px double var(--primary-green);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        .header-section { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .title-box { border-radius: 10px; background-color: var(--light-green); padding: 12px 20px; text-align: center; flex-grow: 1; margin-left: 15px; }
+        .title-box h5 { margin: 0; font-weight: 800; color: var(--primary-green); }
+        .title-box p { margin: 0; font-size: 11px; color: #555; }
+        .logo-placeholder img { max-width: 120px; height: auto; }
+
+        table { width: 100%; margin-bottom: 10px !important; font-size: 10.5px; }
+        th, td { border: 1px solid #333 !important; padding: 4px !important; vertical-align: middle; }
+        .bg-green-header { background-color: var(--light-green) !important; color: var(--primary-green); font-weight: bold; }
+        .bg-green-dark { background-color: var(--primary-green) !important; color: white !important; }
+        .bg-orange-result { background-color: var(--accent-orange) !important; color: white !important; font-weight: bold; }
+
+        input.form-control { border: none; border-bottom: 1px solid #eee; padding: 0; font-size: 10.5px; background: transparent; }
+        .score-input { text-align: center; width: 35px; border: 1px solid #ccc !important; font-weight: bold; border-radius: 4px; }
+        
+        .signature-section { padding: 10px 0; border-top: 1px solid #eee; margin-top: auto; }
+        .sig-box { text-align: center; font-size: 11px; }
+        .sig-line { border-bottom: 1px dashed #333; width: 100%; height: 20px; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div id="authOverlay">
+    <div class="auth-card">
+        <img src="/logo.jpg" alt="Logo" class="bg-light" style="width: 100px; margin-bottom: 20px; background-color: #f4f4f4;">
+        <h4 style="color: var(--primary-green);">     إدخال الرقم الوظيفي للمسئول المباشر 
+ </h4>
+        <input type="password" id="managerIDInput" class="form-control mb-3 text-center" placeholder="أدخل الرقم الوظيفي للمدير" style="border-bottom: 2px solid var(--primary-green) !important; font-size: 18px;">
+        <button onclick="verifyManager()" id="loginBtn" class="btn w-100 text-white" style="background-color: var(--primary-green);">دخول النظام</button>
+        <p id="errorMsg" class="text-danger mt-3" style="display:none;">الرقم الوظيفي غير مسجل كمدير!</p>
+    </div>
+</div>
+
+<div id="mainContent" class="a4-container">
+    <div class="header-section">
+        <div class="title-box">
+            <h5>نموذج تقييم أداء الوظائف التخصصية</h5>
+            <p>Specialized job performance appraisal form</p>
+        </div>
+        <div class="logo-placeholder">
+            <img src="/alrwadalogo.jpeg" alt="Logo">
+        </div>
+    </div>
+
+    <table>
+        <tr>
+            <td class="bg-green-header" width="15%">اسم الموظف</td>
+            <td width="35%"><input type="text" id="empName" class="form-control"></td>
+            <td class="bg-green-header" width="15%">رقم الموظف</td>
+            <td width="35%"><input type="text" id="empID" class="form-control"></td>
+        </tr>
+        <tr>
+            <td class="bg-green-header">الوظيفة</td>
+            <td><input type="text" id="jobTitle" class="form-control"></td>
+            <td class="bg-green-header">الإدارة</td>
+            <td><input type="text" id="dept" class="form-control"></td>
+        </tr>
+        <tr>
+            <td class="bg-green-header">تاريخ التعيين</td>
+            <td colspan="3"><input type="date" id="hireDate" class="form-control" style="width: 200px;"></td>
+        </tr>
+    </table>
+
+    <table class="text-center">
+        <thead>
+            <tr class="bg-green-dark">
+                <th width="3%">م</th><th>عناصر التقييم</th><th width="5%">الأعلى</th><th width="5%">الدرجة</th>
+                <th width="3%">م</th><th>عناصر التقييم</th><th width="5%">الأعلى</th><th width="5%">الدرجة</th>
+            </tr>
+        </thead>
+        <tbody id="evalBody"></tbody>
+        <tfoot>
+            <tr class="bg-orange-result">
+                <td colspan="6" class="text-end">النتيجة الكلية المكتسبة:</td>
+                <td colspan="2"><span id="total">0</span> / 100</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <table class="text-center">
+        <thead class="bg-green-header">
+            <tr>
+                <th>نقاط القوة</th>
+                <th>نقاط الضعف</th>
+                <th>التوصيات والمقترحات</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><textarea id="strengthsText" class="form-control w-100" rows="3"></textarea></td>
+                <td><textarea id="weaknessText" class="form-control w-100" rows="3"></textarea></td>
+                <td><textarea id="recText" class="form-control w-100" rows="3"></textarea></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="signature-section">
+        <div class="row">
+            <div class="col-4 sig-box"><div class="sig-label">توقيع الموظف</div><div class="sig-line"></div><small>تاريخ التوقيع:    /    / 2026</small></div>
+            <div class="col-4 sig-box"><div class="sig-label">الرئيس المباشر</div><div class="sig-line"></div><small>الاسم: ..........................</small></div>
+            <div class="col-4 sig-box"><div class="sig-label">الموارد البشرية</div><div class="sig-line"></div><small>الاسم: ..........................</small></div>
+        </div>
+    </div>
+
+    <div class="text-center no-print mt-3">
+        <button id="sendBtn" class="btn btn-success px-5" onclick="submitData()"><i class="fas fa-save me-2"></i> إرسال وحفظ</button>
+        <button class="btn btn-warning text-white px-4" onclick="window.print()"><i class="fas fa-print me-2"></i> طباعة</button>
+    </div>
+</div>
+
+<script>
+    let currentManagerID = ""; // تم تصحيحها لتكون فارغة وتستقبل الرقم من وظيفة التحقق
+
+    const evalItems = [
+        {id: 1, txt: "معرفة الأهداف المنشودة", max: 4, id2: 12, txt2: "معرفة تفاصيل المهام", max2: 4},
+        {id: 2, txt: "الاهتمام والمسؤولية", max: 4, id2: 13, txt2: "سرعة أداء المهام", max2: 4},
+        {id: 3, txt: "جودة وسلامة العمل", max: 4, id2: 14, txt2: "سرعة إنجاز الأعمال", max2: 4},
+        {id: 4, txt: "التعاون مع الزملاء", max: 4, id2: 15, txt2: "الدقة في أداء الأعمال", max2: 4},
+        {id: 5, txt: "التعاون مع الآخرين", max: 4, id2: 16, txt2: "تحمل أعباء ومسؤوليات أعلى", max2: 4},
+        {id: 6, txt: "المظهر والتصرف", max: 4, id2: 17, txt2: "توضيح وشرح المهام", max2: 4},
+        {id: 7, txt: "القدرة على التطوير والابتكار", max: 4, id2: 18, txt2: "الالتزام بالدوام الرسمي", max2: 4},
+        {id: 8, txt: "الرغبة في التعلم الذاتي", max: 4, id2: 19, txt2: "الالتزام بأخلاقيات العمل", max2: 4},
+        {id: 9, txt: "احترام الأنظمة والتعليمات", max: 4, id2: 20, txt2: "اهتمام بتطوير المهارات", max2: 4},
+        {id: 10, txt: "مستوى مدى المعرفة", max: 4, id2: 21, txt2: "المحافظة على الأمن", max2: 4},
+        {id: 11, txt: "التأخير والغياب", max: 10, id2: 22, txt2: "المخالفات الوظيفية", max2: 10},
+    ];
+
+    // بناء الجدول
+    const body = document.getElementById('evalBody');
+    evalItems.forEach(item => {
+        body.innerHTML += `
+            <tr>
+                <td class="bg-light">${item.id}</td><td class="text-start">${item.txt}</td><td>${item.max}</td>
+                <td><input type="number" class="score-input" oninput="sum()" max="${item.max}"></td>
+                <td class="bg-light">${item.id2}</td><td class="text-start">${item.txt2}</td><td>${item.max2}</td>
+                <td><input type="number" class="score-input" oninput="sum()" max="${item.max2}"></td>
+            </tr>`;
+    });
+
+    function sum() {
+        let total = 0;
+        document.querySelectorAll('.score-input').forEach(i => total += (Number(i.value) || 0));
+        document.getElementById('total').innerText = total;
+    }
+
+    function verifyManager() {
+        const id = document.getElementById('managerIDInput').value;
+        const btn = document.getElementById('loginBtn');
+        if(!id) return;
+        
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+        google.script.run.withSuccessHandler(function(isValid) {
+            if (isValid) {
+                currentManagerID = id;
+                document.getElementById('authOverlay').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'flex';
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+                btn.innerText = 'دخول النظام';
+            }
+        }).checkManagerID(id);
+    }
+
+    function submitData() {
+        const btn = document.getElementById('sendBtn');
+        const originalBtnText = btn.innerHTML;
+        
+        // التحقق من تعبئة البيانات الأساسية قبل الإرسال
+        if(!document.getElementById('empName').value || !document.getElementById('empID').value) {
+            alert("يرجى إدخال اسم الموظف ورقمه الوظيفي أولاً");
+            return;
+        }
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        btn.disabled = true;
+
+        const scores = [];
+        let g1 = 0, g2 = 0;
+        document.querySelectorAll('.score-input').forEach((input, index) => {
+            let val = Number(input.value) || 0;
+            scores.push(val);
+            if(index < 11) g1 += val; else g2 += val;
+        });
+
+        const payload = {
+            managerID: currentManagerID,
+            empName: document.getElementById('empName').value,
+            empID: document.getElementById('empID').value,
+            jobTitle: document.getElementById('jobTitle').value,
+            dept: document.getElementById('dept').value,
+            hireDate: document.getElementById('hireDate').value,
+            scores: scores,
+            sumGroup1: g1,
+            sumGroup2: g2,
+            total: document.getElementById('total').innerText,
+            strengths: document.getElementById('strengthsText').value,
+            weaknesses: document.getElementById('weaknessText').value,
+            recommendations: document.getElementById('recText').value
+        };
+
+        google.script.run.withSuccessHandler(function(res) {
+            alert("تم حفظ البيانات بنجاح. ستفتح نافذة الطباعة الآن.");
+            
+            // تشغيل الطباعة
+            window.print();
+            
+            // إعادة تحميل الصفحة بعد الطباعة لتجهيز نموذج جديد
+            location.reload();
+            
+        }).withFailureHandler(function(err) {
+            alert("حدث خطأ أثناء الحفظ: " + err);
+            btn.innerHTML = originalBtnText;
+            btn.disabled = false;
+        }).processForm(payload);
+    }
+</script>
+</body>
+</html>
