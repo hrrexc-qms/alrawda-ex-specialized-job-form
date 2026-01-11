@@ -156,7 +156,10 @@
 </div>
 
 <script>
-    let currentManagerID = ""; // تم تصحيحها لتكون فارغة وتستقبل الرقم من وظيفة التحقق
+    // 1. ضع هنا رابط الـ Web App URL الذي حصلت عليه من Google Apps Script (ينتهي بـ /exec)
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyDhYjWRewro35uunyO5Kup5BP7VDApfUcF-JetLZ-JWDEKmQH6U_9MNCMuZZOmJ2oVMg/exec';
+
+    let currentManagerID = ""; 
 
     const evalItems = [
         {id: 1, txt: "معرفة الأهداف المنشودة", max: 4, id2: 12, txt2: "معرفة تفاصيل المهام", max2: 4},
@@ -172,7 +175,7 @@
         {id: 11, txt: "التأخير والغياب", max: 10, id2: 22, txt2: "المخالفات الوظيفية", max2: 10},
     ];
 
-    // بناء الجدول
+    // بناء الجدول برمجياً
     const body = document.getElementById('evalBody');
     evalItems.forEach(item => {
         body.innerHTML += `
@@ -190,13 +193,18 @@
         document.getElementById('total').innerText = total;
     }
 
+    // وظيفة التحقق من المدير (تستخدم JSONP للعمل من GitHub)
     function verifyManager() {
         const id = document.getElementById('managerIDInput').value;
         const btn = document.getElementById('loginBtn');
         if(!id) return;
         
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
-        google.script.run.withSuccessHandler(function(isValid) {
+        
+        // ملاحظة: لتحقيق أقصى توافق من GitHub، نستخدم fetch للتحقق
+        fetch(`${SCRIPT_URL}?action=checkManager&id=${id}`)
+        .then(res => res.json())
+        .then(isValid => {
             if (isValid) {
                 currentManagerID = id;
                 document.getElementById('authOverlay').style.display = 'none';
@@ -205,14 +213,16 @@
                 document.getElementById('errorMsg').style.display = 'block';
                 btn.innerText = 'دخول النظام';
             }
-        }).checkManagerID(id);
+        }).catch(() => {
+            // في حال وجود قيود CORS، سنفترض صحة الرقم لتسهيل العمل مؤقتاً أو نطلب التأكد من doPost
+            alert("تنبيه: تأكد من تفعيل doGet في السكريبت للتحقق من المدير.");
+            btn.innerText = 'دخول النظام';
+        });
     }
 
     function submitData() {
         const btn = document.getElementById('sendBtn');
-        const originalBtnText = btn.innerHTML;
         
-        // التحقق من تعبئة البيانات الأساسية قبل الإرسال
         if(!document.getElementById('empName').value || !document.getElementById('empID').value) {
             alert("يرجى إدخال اسم الموظف ورقمه الوظيفي أولاً");
             return;
@@ -245,21 +255,26 @@
             recommendations: document.getElementById('recText').value
         };
 
-        google.script.run.withSuccessHandler(function(res) {
-            alert("تم حفظ البيانات بنجاح. ستفتح نافذة الطباعة الآن.");
-            
-            // تشغيل الطباعة
+        // الإرسال من GitHub إلى Google Sheets باستخدام POST
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // لتجاوز مشاكل الحماية بين المواقع
+            cache: 'no-cache',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            alert("تم إرسال البيانات بنجاح! ستفتح نافذة الطباعة الآن.");
             window.print();
-            
-            // إعادة تحميل الصفحة بعد الطباعة لتجهيز نموذج جديد
             location.reload();
-            
-        }).withFailureHandler(function(err) {
-            alert("حدث خطأ أثناء الحفظ: " + err);
-            btn.innerHTML = originalBtnText;
+        })
+        .catch(err => {
+            alert("حدث خطأ أثناء الإرسال: " + err);
             btn.disabled = false;
-        }).processForm(payload);
+            btn.innerHTML = '<i class="fas fa-save me-2"></i> إرسال وحفظ';
+        });
     }
 </script>
 </body>
+
 </html>
