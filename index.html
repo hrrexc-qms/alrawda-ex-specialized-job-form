@@ -59,9 +59,28 @@
             border-bottom: 3px solid var(--alrowda-orange);
             margin-bottom: 15px; padding-bottom: 10px;
         }
+.header-brand {
+    display: flex;
+    flex-direction: row !important;   /* منع النزول تحت العنوان */
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: nowrap;                /* منع الالتفاف */
+}
 
-        .title-text h5 { color: var(--alrowda-green); font-weight: 800; margin: 0; }
-        
+        .title-text h5 { color: var(--alrowda-green); font-weight: 800; margin: 0;  flex: 1;
+    min-width: 0;
+}
+
+.header-brand img {
+    flex-shrink: 0;      /* منع تصغير أو نزول الشعار */
+    max-height: 60px;
+}
+        @media (max-width: 480px) {
+    .header-brand img {
+        max-height: 45px;
+    }
+}
+
         /* الجداول والظلال */
         table { 
             width: 100%; 
