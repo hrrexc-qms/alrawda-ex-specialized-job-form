@@ -429,14 +429,25 @@ function handleSearch(query) {
         document.querySelectorAll('.score-input').forEach(i => total += (Number(i.value) || 0));
         document.getElementById('total').innerText = total;
     }
-
 function submitData() {
-    const btn = document.getElementById('sendBtn');
+
+    // التحقق من اختيار الموظف
     if (!document.getElementById('empName').value) { 
         alert("اختر موظفاً أولاً"); 
         return; 
     }
 
+    // ✅ التحقق من تعبئة الحقول الإلزامية
+    const strengths = document.getElementById('strengthsText').value.trim();
+    const weaknesses = document.getElementById('weaknessText').value.trim();
+    const recommendations = document.getElementById('recText').value.trim();
+
+    if (!strengths || !weaknesses || !recommendations) {
+        alert("يجب تعبئة نقاط القوة ونقاط الضعف والتوصيات والمقترحات قبل إرسال التقييم");
+        return;
+    }
+
+    const btn = document.getElementById('sendBtn');
     btn.disabled = true;
     btn.innerHTML = "جاري الحفظ...";
 
@@ -452,18 +463,17 @@ function submitData() {
         dept: document.getElementById('dept').value,
         scores: scores,
         total: document.getElementById('total').innerText,
-        strengths: document.getElementById('strengthsText').value,
-        weaknesses: document.getElementById('weaknessText').value,
-        recommendations: document.getElementById('recText').value
+        strengths: strengths,
+        weaknesses: weaknesses,
+        recommendations: recommendations
     };
 
     fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
     .then(() => {
         alert("تم حفظ التقييم بنجاح!");
-        window.print();  // عرض نافذة الطباعة فقط
-        // حذف location.reload(); ← هذا يمنع العودة إلى صفحة الدخول
+        window.print();
 
-        // إعادة تهيئة النموذج للموظف التالي
+        // إعادة تهيئة النموذج
         document.getElementById('empName').value = '';
         document.getElementById('empID').value = '';
         document.getElementById('jobTitle').value = '';
@@ -483,6 +493,7 @@ function submitData() {
 </script>
 </body>
 </html>
+
 
 
 
