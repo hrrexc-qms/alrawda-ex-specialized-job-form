@@ -351,7 +351,7 @@ function handleSearch(query) {
 
     list.innerHTML = filtered.map(emp => `
         <div class="suggestion-item"
-             onclick="selectEmployee('${emp.id}','${emp.name}','${emp.job}','${emp.dept}')">
+             onclick="selectEmployee('${emp.name}','${emp.id}','${emp.job}','${emp.dept}')">
             <div class="item-content">
                 <i class="fas fa-user"></i>
                 <span class="emp-name-text">${emp.name}</span>
@@ -460,3 +460,4 @@ function submitData() {
 </script>
 </body>
 </html>
+
