@@ -429,6 +429,7 @@ function handleSearch(query) {
         document.querySelectorAll('.score-input').forEach(i => total += (Number(i.value) || 0));
         document.getElementById('total').innerText = total;
     }
+
 function submitData() {
 
     // التحقق من اختيار الموظف
@@ -437,7 +438,24 @@ function submitData() {
         return; 
     }
 
-    // ✅ التحقق من تعبئة الحقول الإلزامية
+    // ✅ التحقق من تعبئة جميع بنود التقييم
+    let allScoresFilled = true;
+
+    document.querySelectorAll('.score-input').forEach(input => {
+        if (input.value === '' || isNaN(input.value)) {
+            allScoresFilled = false;
+            input.style.border = "2px solid red"; // تمييز الحقل الناقص
+        } else {
+            input.style.border = "1px solid #ddd";
+        }
+    });
+
+    if (!allScoresFilled) {
+        alert("يجب تعبئة جميع بنود التقييم قبل إرسال النموذج");
+        return;
+    }
+
+    // ✅ التحقق من تعبئة الحقول الإلزامية النصية
     const strengths = document.getElementById('strengthsText').value.trim();
     const weaknesses = document.getElementById('weaknessText').value.trim();
     const recommendations = document.getElementById('recText').value.trim();
@@ -452,7 +470,7 @@ function submitData() {
     btn.innerHTML = "جاري الحفظ...";
 
     const scores = [];
-    document.querySelectorAll('.score-input').forEach(i => scores.push(Number(i.value) || 0));
+    document.querySelectorAll('.score-input').forEach(i => scores.push(Number(i.value)));
 
     const payload = {
         managerID: currentManagerID,
@@ -468,7 +486,11 @@ function submitData() {
         recommendations: recommendations
     };
 
-    fetch(SCRIPT_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) })
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(payload)
+    })
     .then(() => {
         alert("تم حفظ التقييم بنجاح!");
         window.print();
@@ -489,10 +511,10 @@ function submitData() {
         btn.innerHTML = `<i class="fas fa-save me-2"></i> إرسال وحفظ التقييم`;
     });
 }
-
 </script>
 </body>
 </html>
+
 
 
 
