@@ -303,6 +303,7 @@ main,
     let currentManagerID = "";
     let currentManagerName = "";
     let allEmployees = []; // تخزين قائمة الموظفين هنا
+    let sessionToken = "";
 
     const evalItems = [
        {id: 1,  txt: "مستوى تحقيقه للأهداف المنشودة", max: 4, id2: 12, txt2: "مستوى معرفته بتفاصيل مهام وظيفته", max2: 4},
@@ -404,19 +405,21 @@ function handleSearch(query) {
 
         fetch(`${SCRIPT_URL}?action=checkManager&id=${id}`)
             .then(res => res.json())
-            .then(data => {
-                if (data.valid) {
-                    currentManagerID = id;
-                    currentManagerName = data.managerName;
-                    document.getElementById('managerNameDisplay').innerText = currentManagerName;
-                    document.getElementById('authOverlay').style.display = 'none';
-                    document.getElementById('mainContent').style.display = 'flex';
-                    fetchEmployees(); // تحميل الموظفين فور الدخول
-                } else {
-                    document.getElementById('errorMsg').style.display = 'block';
-                    btn.innerText = 'دخول';
-                }
-            });
+           .then(data => {
+    if (data.valid) {
+        currentManagerID = id;
+        currentManagerName = data.managerName;
+        sessionToken = data.token; // ✅ حفظ التوكن
+
+        document.getElementById('managerNameDisplay').innerText = currentManagerName;
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'flex';
+        fetchEmployees();
+    } else {
+        document.getElementById('errorMsg').style.display = 'block';
+        btn.innerText = 'دخول';
+    }
+});
     }
 
     function validateInput(input, max) {
@@ -473,6 +476,7 @@ function submitData() {
     document.querySelectorAll('.score-input').forEach(i => scores.push(Number(i.value)));
 
     const payload = {
+            token: sessionToken, // 🔐 التوكن
         managerID: currentManagerID,
         managerName: currentManagerName,
         empName: document.getElementById('empName').value,
@@ -514,10 +518,3 @@ function submitData() {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
