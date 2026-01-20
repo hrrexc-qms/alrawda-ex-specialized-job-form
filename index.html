@@ -296,7 +296,6 @@ main,
         </button>
     </div>
 </div>
-
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXSamuk8UUrzIe8ffHbs_SMDTrZ28QoBidnBgllLFVPDuOmP9iNzXu7AH2WaBekFmoRA/exec'; 
 
@@ -374,42 +373,51 @@ function allowOnlyPositiveNumbers(e) {
     return true;
 }
 
+function allowDecimal(e) {
+    // مفاتيح مسموحة دائمًا
+    const allowedKeys = [
+        'Backspace', 'Delete', 'Tab',
+        'ArrowLeft', 'ArrowRight',
+        'Home', 'End'
+    ];
+
+    if (allowedKeys.includes(e.key)) return true;
+
+    // منع السالب
+    if (e.key === '-' || e.key === '+') return false;
+
+    // السماح بنقطة واحدة فقط
+    if (e.key === '.') {
+        if (e.target.value.includes('.')) return false;
+        return true;
+    }
+
+    // السماح بالأرقام فقط
+    if (!/^[0-9]$/.test(e.key)) return false;
+
+    return true;
+}
+
 function validateScore(input, max) {
-    // حذف أي شيء غير رقم
-    input.value = input.value.replace(/[^0-9]/g, '');
+    // تنظيف الإدخال (احتياط)
+    input.value = input.value.replace(/[^0-9.]/g, '');
 
-    // منع الصفر إن أردت (اختياري)
-    if (input.value !== '' && Number(input.value) < 0) {
-        input.value = '';
+    // منع أكثر من فاصلة
+    const parts = input.value.split('.');
+    if (parts.length > 2) {
+        input.value = parts[0] + '.' + parts[1];
     }
 
     // منع تجاوز الحد الأعلى
-    if (input.value !== '' && Number(input.value) > max) {
+    const val = parseFloat(input.value);
+    if (!isNaN(val) && val > max) {
         input.value = max;
     }
+
+    // تحديث الإجمالي
+    sum();
 }
 
-function preventArrows(e) {
-    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-        return false;
-    }
-}
-
-function validateInput(input, max) {
-    // إزالة أي شيء غير رقم
-    input.value = input.value.replace(/[^0-9]/g, '');
-
-    // منع القيم السالبة (احتياط)
-    if (input.value.startsWith('-')) {
-        input.value = '';
-        return;
-    }
-
-    // منع تجاوز الحد الأعلى
-    if (input.value !== '' && Number(input.value) > max) {
-        input.value = max;
-    }
-}
 
     // جلب قائمة الموظفين عند الدخول
     function fetchEmployees() {
@@ -584,4 +592,5 @@ function submitData() {
 </script>
 </body>
 </html>
+
 
