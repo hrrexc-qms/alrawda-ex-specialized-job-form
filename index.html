@@ -590,48 +590,54 @@ function submitData() {
         btn.disabled = false;
         btn.innerHTML = `<i class="fas fa-save me-2"></i> إرسال وحفظ التقييم`;
     });
-}
-function downloadPDF() {
+}function downloadPDF() {
     const element = document.getElementById('mainContent');
     const empName = document.getElementById('empName').value.trim() || 'تقييم_موظف';
 
-    // 1. إجبار العنصر على أن يكون اتجاهه من اليمين لليسار
+    // 1. إجبار العنصر على أن يكون اتجاهه من اليمين لليسار (لجميع العناصر)
     element.style.direction = 'rtl';
+    element.classList.add('force-rtl');
 
-    // 2. إخفاء الأزرار يدوياً قبل التقاط الصورة (للتأكد 100% من عدم ظهورها)
+    // 2. إخفاء الأزرار قبل الحفظ
     const buttonsToHide = element.querySelectorAll('button, .no-print, .submit-btn');
     buttonsToHide.forEach(btn => btn.style.display = 'none');
 
     const opt = {
-        margin:       0,
-        filename:     empName + '.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { 
-            scale: 2, 
-            useCORS: true, 
-            letterRendering: true // تحسين رندر الحروف العربية
-        },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        margin: 0,
+        filename: empName + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+        jsPDF: { unit: 'mm', format: [210, 297], orientation: 'portrait' }
     };
-element.classList.add('force-rtl');
-html2pdf().set(opt).from(element).save().then(() => {
-    element.classList.remove('force-rtl');
-});
 
-    // 3. تنفيذ عملية التحويل
-    html2pdf().set(opt).from(element).save().then(() => {
-        // 4. إعادة إظهار الأزرار بعد الانتهاء من التحميل
-        buttonsToHide.forEach(btn => btn.style.display = '');
-        // إرجاع التنسيق الأصلي إذا لزم الأمر
-         element.style.direction = ''; 
-    });
+    // 3. تنفيذ الحفظ مرة واحدة
+    html2pdf()
+        .set(opt)
+        .from(element)
+        .save()
+        .then(() => {
+            // إعادة إظهار الأزرار
+            buttonsToHide.forEach(btn => btn.style.display = '');
+
+            // إزالة RTL المؤقت
+            element.classList.remove('force-rtl');
+            element.style.direction = '';
+
+            // 4. إعادة تهيئة النموذج لتقييم موظف جديد
+            resetForm();
+
+            // 5. وضع التركيز على حقل اختيار الموظف الجديد
+            document.getElementById('empName').focus();
+        });
 }
+
+// دالة إعادة تهيئة النموذج
 function resetForm() {
     document.getElementById('empName').value = '';
     document.getElementById('empID').value = '';
     document.getElementById('jobTitle').value = '';
     document.getElementById('dept').value = '';
-    document.getElementById('total').innerText = '0';
+    if(document.getElementById('total')) document.getElementById('total').innerText = '0';
     document.getElementById('strengthsText').value = '';
     document.getElementById('weaknessText').value = '';
     document.getElementById('recText').value = '';
@@ -641,3 +647,4 @@ function resetForm() {
 </script>
 </body>
 </html>
+
