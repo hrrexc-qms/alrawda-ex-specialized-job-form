@@ -329,21 +329,87 @@ main,
             });
         }
     });
-    // بناء الجدول
-    const body = document.getElementById('evalBody');
-    evalItems.forEach(item => {
-        body.innerHTML += `
-            <tr>
-                <td style="background-color:#faa619; color:white">${item.id}</td>
-                <td class="text-start ps-2">${item.txt}</td>
-                <td class="max-score-col">${item.max}</td>
-                <td><input type="number" class="score-input" oninput="validateInput(this, ${item.max})"></td>
-                <td style="background-color:#faa619; color:white">${item.id2}</td>
-                <td class="text-start ps-2">${item.txt2}</td>
-                <td class="max-score-col">${item.max2}</td>
-                <td><input type="number" class="score-input" oninput="validateInput(this, ${item.max2})"></td>
-            </tr>`;
-    });
+
+ const body = document.getElementById('evalBody');
+
+evalItems.forEach(item => {
+    body.innerHTML += `
+        <tr>
+            <td style="background-color:#faa619; color:white">${item.id}</td>
+            <td class="text-start ps-2">${item.txt}</td>
+            <td class="max-score-col">${item.max}</td>
+            <td>
+                <input type="text"
+                       class="score-input"
+                       inputmode="numeric"
+                       onkeydown="return allowOnlyPositiveNumbers(event)"
+                       oninput="validateScore(this, ${item.max})">
+            </td>
+
+            <td style="background-color:#faa619; color:white">${item.id2}</td>
+            <td class="text-start ps-2">${item.txt2}</td>
+            <td class="max-score-col">${item.max2}</td>
+            <td>
+                <input type="text"
+                       class="score-input"
+                       inputmode="numeric"
+                       onkeydown="return allowOnlyPositiveNumbers(event)"
+                       oninput="validateScore(this, ${item.max2})">
+            </td>
+        </tr>`;
+});
+
+function allowOnlyPositiveNumbers(e) {
+    // منع السالب، الأسهم، e، + 
+    if (
+        e.key === '-' ||
+        e.key === '+' ||
+        e.key === 'e' ||
+        e.key === 'E' ||
+        e.key === 'ArrowUp' ||
+        e.key === 'ArrowDown'
+    ) {
+        return false;
+    }
+    return true;
+}
+
+function validateScore(input, max) {
+    // حذف أي شيء غير رقم
+    input.value = input.value.replace(/[^0-9]/g, '');
+
+    // منع الصفر إن أردت (اختياري)
+    if (input.value !== '' && Number(input.value) < 0) {
+        input.value = '';
+    }
+
+    // منع تجاوز الحد الأعلى
+    if (input.value !== '' && Number(input.value) > max) {
+        input.value = max;
+    }
+}
+
+function preventArrows(e) {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        return false;
+    }
+}
+
+function validateInput(input, max) {
+    // إزالة أي شيء غير رقم
+    input.value = input.value.replace(/[^0-9]/g, '');
+
+    // منع القيم السالبة (احتياط)
+    if (input.value.startsWith('-')) {
+        input.value = '';
+        return;
+    }
+
+    // منع تجاوز الحد الأعلى
+    if (input.value !== '' && Number(input.value) > max) {
+        input.value = max;
+    }
+}
 
     // جلب قائمة الموظفين عند الدخول
     function fetchEmployees() {
@@ -518,3 +584,4 @@ function submitData() {
 </script>
 </body>
 </html>
+
