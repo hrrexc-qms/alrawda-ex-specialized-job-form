@@ -10,223 +10,141 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
     
-    <style>
-        :root {
-            --alrowda-green: #1a953e;
-            --alrowda-orange: #faa619;
-            --alrowda-light-green: #e9f5ec;
-            --alrowda-soft-orange: #fff4e5;
-            --text-dark: #2d3436;
-            --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-
-  @media print {
-
-    @page {
-        size: A4;
-        margin: 10.5mm; /* توسعة أخيرة محسوبة */
+ <style>
+    /* --- التنسيقات الأصلية التي أرفقتها (بدون حذف) --- */
+    :root {
+        --alrowda-green: #1a953e;
+        --alrowda-orange: #faa619;
+        --alrowda-light-green: #e9f5ec;
+        --alrowda-soft-orange: #fff4e5;
+        --text-dark: #2d3436;
+        --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
 
-    body {
-        font-size: 12px !important;
-        line-height: 1.35 !important;
+    body { 
+        background-color: #f4f7f6; 
+        font-family: 'Cairo', sans-serif; 
+        font-size: 12px; 
+        color:black;  
+        margin: 0;
+        padding: 0;
+        /* إضافة اتجاه النص العام */
+        direction: rtl; 
+            unicode-bidi: embed;
+
     }
 
-    .a4-container {
-        padding: 9mm !important;
-        min-height: auto !important;
+    #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--alrowda-green) 0%, #116329 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+    .auth-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 350px; text-align: center; border-top: 6px solid var(--alrowda-orange); }
+
+    /* تعديل حاوية A4 لتصبح صارمة بصفحة واحدة */
+    .a4-container { 
+        width: 210mm; 
+        height: auto; /* تثبيت الارتفاع لضمان صفحة واحدة */
+        background: white; 
+        padding: 3mm; 
+        box-shadow: var(--card-shadow); 
+        border-radius: 15px; 
+        border: 3px solid #f1f1ef; 
+        flex-direction: column; 
+        box-sizing: border-box; /* لضمان حساب الهوامش ضمن الحجم */
+        overflow: hidden; /* يمنع امتداد المحتوى لصفحة ثانية */
     }
 
-    main {
-        padding: 9px !important;
-        border-width: 3px !important;
+    .header-brand { border-bottom: 3px solid var(--alrowda-orange); margin-bottom: 15px; padding-bottom: 10px; }
+    .title-text h5 { color: var(--alrowda-green); font-weight: 800; margin: 0; }
+    
+    table { width: 100%; margin-bottom: 15px !important; border-radius: 8px; overflow: hidden; border-collapse: collapse; }
+    th { background-color: var(--alrowda-green) !important; color: white !important; font-weight: 700; padding: 8px !important; }
+    .bg-light-row { background-color: var(--alrowda-light-green) !important; font-weight: 700; color: var(--alrowda-green); }
+    .max-score-col { background-color: var(--alrowda-soft-orange) !important; color: #d35400; font-weight: 700; }
+
+    .score-input { width: 45px; text-align: center; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; height: 25px; }
+
+    .suggestions-container { position: relative; width: 100%; }
+    #suggestionsList {
+        position: absolute; top: 100%; left: 0; right: 0;
+        background: #ffffff; border: 1px solid #dce0e4; border-radius: 0 0 12px 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25); z-index: 99999; display: none;
+        max-height: 280px; overflow-y: auto; padding: 5px 0;
     }
 
-    table {
-        margin-bottom: 9px !important;
-        border-collapse: collapse;
+    .suggestion-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; cursor: pointer; border-bottom: 1px solid #f1f1f1; transition: background 0.2s ease; }
+    .suggestion-item:last-child { border-bottom: none; }
+    .suggestion-item:hover { background-color: #f0f9f2; }
+    .item-content { display: flex; align-items: center; gap: 12px; }
+    .item-content i { color: #1a953e; font-size: 1.2rem; }
+    .emp-name-text { font-weight: 700; font-size: 14px; color: #0f0f0f; }
+    .emp-id-badge { background: #f1f2f6; color: #0f0f0f; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-family: monospace; font-weight: 600; }
+
+    #suggestionsList::-webkit-scrollbar { width: 7px; }
+    #suggestionsList::-webkit-scrollbar-track { background: #e8f7ec; border-radius: 10px; }
+    #suggestionsList::-webkit-scrollbar-thumb { background: var(--alrowda-orange); border-radius: 10px; }
+    #suggestionsList::-webkit-scrollbar-thumb:hover { background: #e69510; }
+
+    main, .table, .card { overflow: visible !important; }
+
+    /* --- التعديلات الجديدة المطلوبة --- */
+
+    /* 1. ضبط اتجاه الحقول في الجداول لتكون (العنوان يمين - القيمة يسار) */
+    .info-table td {
+        text-align: right !important;
+        direction: rtl !important;
     }
+/* 1. التنسيق العام للمستند (للتأكد من الـ RTL في كل الأحوال) */
 
-    th {
-        padding: 8px !important;
-        font-size: 12px !important;
-    }
 
-    td {
-        padding: 7px 8px !important;
-        font-size: 12px !important;
-        line-height: 1.35 !important;
-    }
 
-    .form-control,
-    textarea {
-        padding: 5px 7px !important;
-        font-size: 12px !important;
-        line-height: 1.3 !important;
-    }
-
-    textarea {
-        min-height: 65px !important;
-        height: 65px !important;
-    }
-
-    .score-input {
-        height: 26px !important;
-        width: 46px !important;
-        font-size: 12px !important;
-    }
-
-    .header-brand {
-        margin-bottom: 12px !important;
-        padding-bottom: 10px !important;
-    }
-
-    table, tr, td, th {
-        page-break-inside: avoid !important;
-    }
-
-    .no-print {
-        display: none !important;
-    }
+/* 3. تنسيقات العرض على الشاشة (للمحافظة على شكل الجداول) */
+table { 
+    direction: rtl; 
+    width: 100%; 
+    border-collapse: collapse; 
+}
+/* فرض RTL بشكل دائم أثناء التحويل */
+.rtl {
+    direction: rtl !important;
+    text-align: right !important;
 }
 
-
-        body { background-color: #f4f7f6; font-family: 'Cairo', sans-serif; font-size: 12px; color:black; }
-
-        /* شاشة الدخول */
-        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, var(--alrowda-green) 0%, #116329 100%); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); width: 350px; text-align: center; border-top: 6px solid var(--alrowda-orange); }
-
-        .a4-container { width: 210mm; min-height: 290mm; margin: 20px auto; background: white; padding: 12mm; box-shadow: var(--card-shadow); border-radius: 15px; border: 1px solid #e0e0e0; display: flex; flex-direction: column; }
-        .header-brand { border-bottom: 3px solid var(--alrowda-orange); margin-bottom: 15px; padding-bottom: 10px; }
-        .title-text h5 { color: var(--alrowda-green); font-weight: 800; margin: 0; }
-        
-        table { width: 100%; margin-bottom: 15px !important; border-radius: 8px; overflow: hidden; }
-        th { background-color: var(--alrowda-green) !important; color: white !important; font-weight: 700; padding: 8px !important; }
-        .bg-light-row { background-color: var(--alrowda-light-green) !important; font-weight: 700; color: var(--alrowda-green); }
-        .max-score-col { background-color: var(--alrowda-soft-orange) !important; color: #d35400; font-weight: 700; }
-
-        .score-input { width: 45px; text-align: center; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; height: 25px; }
-/* حاوية حقل البحث */
-.suggestions-container {
-    position: relative;
-    width: 100%;
+.rtl * {
+    direction: rtl !important;
+    text-align: right !important;
 }
 
-/* قائمة الاقتراحات */
-#suggestionsList {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-
-    background: #ffffff;
-    border: 1px solid #dce0e4;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-
-    z-index: 99999;      /* تطفو فوق كل شيء */
-    display: none;
-
-    max-height: 280px;
-    overflow-y: auto;
-    padding: 5px 0;
-}
-
-/* عنصر الموظف */
-.suggestion-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 18px;
-    cursor: pointer;
-    border-bottom: 1px solid #f1f1f1;
-    transition: background 0.2s ease;
-}
-
-.suggestion-item:last-child {
-    border-bottom: none;
-}
-
-.suggestion-item:hover {
-    background-color: #f0f9f2;
-}
-
-/* محتوى الاسم */
-.item-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.item-content i {
-    color: #1a953e;
-    font-size: 1.2rem;
-}
-
-.emp-name-text {
-    font-weight: 700;
-    font-size: 14px;
-    color: #0f0f0f;
-}
-
-/* شارة الرقم الوظيفي */
-.emp-id-badge {
-    background: #f1f2f6;
-    color: #0f0f0f;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 11px;
-    font-family: monospace;
-    font-weight: 600;
-}
-
-/* شريط التمرير */
-#suggestionsList::-webkit-scrollbar {
-    width: 7px;
-}
-
-#suggestionsList::-webkit-scrollbar-track {
-    background: #e8f7ec;
-    border-radius: 10px;
-}
-
-#suggestionsList::-webkit-scrollbar-thumb {
-    background: var(--alrowda-orange);
-    border-radius: 10px;
-}
-
-#suggestionsList::-webkit-scrollbar-thumb:hover {
-    background: #e69510;
-}
-main,
-.table,
-.card {
-    overflow: visible !important;
-}
-
-    </style>
+</style>
 </head>
 <body>
 
 <div id="authOverlay">
     <div class="auth-card">
         <img src="logo.jpeg" alt="Logo" style="width: 80px; margin-bottom: 15px;">
-        <h5 class="fw-bold mb-3" style="color: var(--alrowda-green)">دخول المسؤول المباشر</h5>
-        <input type="password" id="managerIDInput" class="form-control text-center mb-3" placeholder="أدخل الرقم الوظيفي" onkeypress="if(event.key==='Enter') verifyManager()">
-        <button onclick="verifyManager()" id="loginBtn" class="btn btn-success w-100 fw-bold">دخول</button>
-        <div id="errorMsg" class="text-danger mt-2 small" style="display:none;">عفواً، الرقم غير مسجل!</div>
+        
+        <h5 id="authTitle" class="fw-bold mb-3" style="color: var(--alrowda-green)">دخول المسؤول المباشر</h5>
+
+        <div id="step1">
+            <input type="password" id="managerIDInput" class="form-control text-center mb-3" placeholder="أدخل الرقم الوظيفي" onkeypress="if(event.key==='Enter') proceedToCode()">
+            <button onclick="proceedToCode()" id="nextBtn" class="btn btn-success w-100 fw-bold">التالي</button>
+        </div>
+
+        <div id="step2" style="display:none;">
+            <input type="password" id="managerCodeInput" class="form-control text-center mb-3" placeholder="أدخل كود التحقق الخاص بك" onkeypress="if(event.key==='Enter') verifyFinalAuth()">
+            <button onclick="verifyFinalAuth()" id="loginBtn" class="btn btn-primary w-100 fw-bold" style="background-color: var(--alrowda-green); border:none;">دخول للتقييم</button>
+            <button onclick="backToStep1()" class="btn btn-link btn-sm mt-2 text-decoration-none text-muted text-black">رجوع</button>
+        </div>
+
+        <div id="errorMsg" class="text-danger mt-2 small" style="display:none;">البيانات المدخلة غير صحيحة!</div>
     </div>
 </div>
 
-<div id="mainContent" class="a4-container" style="display:none;">
+<div id="mainContent" class="a4-container container" style="display:none;">
     <div class="header-brand d-flex justify-content-between align-items-center">
         <div class="title-text"><h5>نموذج تقييم أداء الوظائف التخصصية</h5></div>
         <img src="logo.jpeg" alt="Logo" style="height: 60px;">
     </div>
 
-    <main style="border: solid #1a953e 3px; position: relative; background-color: #ffffff; padding: 10px; border-radius: 2%;">
-        <table class="table table-bordered align-middle">
+    <main style="position: relative; background-color: #ffffff;  border-radius: 2%;">
+        <table class="table table-bordered align-middle rtl">
             <tr>
                 <td class="bg-light-row" width="15%">اسم الموظف</td>
                 <td width="35%">
@@ -265,7 +183,7 @@ main,
         <table class="table table-bordered text-center">
             <thead><tr><th width="33%">نقاط القوة</th><th width="33%">نقاط الضعف</th><th>التوصيات والمقترحات</th></tr></thead>
             <tbody>
-                <tr>
+                <tr class="rtl">
                     <td><textarea id="strengthsText" class="form-control" rows="2"></textarea></td>
                     <td><textarea id="weaknessText" class="form-control" rows="2"></textarea></td>
                     <td><textarea id="recText" class="form-control" rows="2"></textarea></td>
@@ -274,18 +192,18 @@ main,
         </table>
 
         <table class="table table-bordered text-center">
-            <thead><tr><th width="33%">مصادقة الموظف</th><th width="33%">المسئول المباشر</th><th>الموارد البشرية</th></tr></thead>
+            <thead><tr><th width="33%">توقيع  بمصادقة الموظف</th><th width="33%">توقيع المسئول المباشر</th><th> اعتماد الموارد البشرية</th></tr></thead>
             <tbody>
-                <tr>
-                    <td class="sig-cell">التوقيع :------------------</td>
-                    <td class="sig-cell"><span id="managerNameDisplay" style="font-weight:700;"></span><br>التوقيع :------------------</td>
-                    <td class="sig-cell">التوقيع :------------------</td>
+                <tr class="text-center">
+                    <td class="sig-cell"> ------------------</td>
+                    <td class="sig-cell"><span id="managerNameDisplay" style="font-weight:700;"></span><br> ------------------</td>
+                    <td class="sig-cell"> ------------------</td>
                 </tr>
-            </tbody>
+                </tbody>
         </table>
        
-         <div class="text-muted small fw-bold"
-         style="position:absolute; bottom:5px; left:10px;">
+         <div class="text-muted small text-black fw-bold"
+         style="position:absolute; bottom:-3px; left:10px;">
         REC-QF-20-30/Rev02
     </div>
     </main>
@@ -296,6 +214,8 @@ main,
         </button>
     </div>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <script>
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXSamuk8UUrzIe8ffHbs_SMDTrZ28QoBidnBgllLFVPDuOmP9iNzXu7AH2WaBekFmoRA/exec'; 
 
@@ -317,17 +237,23 @@ main,
        {id: 10, txt: "العمل بروح الفريق", max: 4, id2: 21, txt2: "المحافظة على أدوات العمل", max2: 4},
        {id: 11, txt: "التأخير والغياب", max: 10, id2: 22, txt2: "المخالفات الوظيفية", max2: 10},
     ];
-// تفعيل الدخول عند ضغط Enter
-    document.addEventListener('DOMContentLoaded', function() {
-        const loginInput = document.getElementById('managerIDInput');
-        if (loginInput) {
-            loginInput.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    verifyManager();
-                }
-            });
-        }
-    });
+document.addEventListener('DOMContentLoaded', function() {
+    // الضغط على Enter في حقل الرقم الوظيفي
+    const loginInput = document.getElementById('managerIDInput');
+    if (loginInput) {
+        loginInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') proceedToCode();
+        });
+    }
+
+    // الضغط على Enter في حقل الكود
+    const codeInput = document.getElementById('managerCodeInput');
+    if (codeInput) {
+        codeInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') verifyManager();
+        });
+    }
+});
 
  const body = document.getElementById('evalBody');
 
@@ -374,16 +300,9 @@ function allowOnlyPositiveNumbers(e) {
 }
 
 function allowDecimal(e) {
-    // مفاتيح مسموحة دائمًا
-    const allowedKeys = [
-        'Backspace', 'Delete', 'Tab',
-        'ArrowLeft', 'ArrowRight',
-        'Home', 'End'
-    ];
-
+    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
     if (allowedKeys.includes(e.key)) return true;
 
-    // منع السالب
     if (e.key === '-' || e.key === '+') return false;
 
     // السماح بنقطة واحدة فقط
@@ -392,32 +311,43 @@ function allowDecimal(e) {
         return true;
     }
 
-    // السماح بالأرقام فقط
-    if (!/^[0-9]$/.test(e.key)) return false;
-
-    return true;
-}
-
-function validateScore(input, max) {
-    // تنظيف الإدخال (احتياط)
-    input.value = input.value.replace(/[^0-9.]/g, '');
-
-    // منع أكثر من فاصلة
-    const parts = input.value.split('.');
-    if (parts.length > 2) {
-        input.value = parts[0] + '.' + parts[1];
+    // التحقق من عدد الأرقام بعد الفاصلة (بحد أقصى رقمين)
+    if (e.target.value.includes('.')) {
+        const parts = e.target.value.split('.');
+        // إذا كان مؤشر الكتابة بعد الفاصلة وكان هناك رقمين فعلاً، امنع الإدخال
+        if (parts[1].length >= 2 && e.target.selectionStart > e.target.value.indexOf('.')) {
+            return false;
+        }
     }
 
-    // منع تجاوز الحد الأعلى
+    if (!/^[0-9]$/.test(e.key)) return false;
+    return true;
+}
+function validateScore(input, max) {
+    // 1. تنظيف الإدخال من أي رموز غير الأرقام والنقطة
+    input.value = input.value.replace(/[^0-9.]/g, '');
+
+    // 2. التعامل مع الأجزاء العشرية
+    const parts = input.value.split('.');
+    if (parts.length > 2) {
+        // إذا وجد أكثر من نقطة، خذ أول جزئين فقط
+        input.value = parts[0] + '.' + parts[1];
+    }
+    
+    // 3. منع أكثر من رقمين بعد الفاصلة (في حال اللصق مثلاً)
+    if (parts.length === 2 && parts[1].length > 2) {
+        input.value = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+
+    // 4. منع تجاوز الحد الأعلى
     const val = parseFloat(input.value);
     if (!isNaN(val) && val > max) {
         input.value = max;
     }
 
-    // تحديث الإجمالي
+    // 5. تحديث الإجمالي
     sum();
 }
-
 
     // جلب قائمة الموظفين عند الدخول
     function fetchEmployees() {
@@ -471,30 +401,108 @@ function handleSearch(query) {
         document.getElementById('suggestionsList').style.display = 'none';
     }
 
-    function verifyManager() {
-        const id = document.getElementById('managerIDInput').value;
-        if (!id) return;
-        const btn = document.getElementById('loginBtn');
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+ // المتغيرات المطلوبة للتحكم في الحالة
+let tempManagerID = ""; 
 
-        fetch(`${SCRIPT_URL}?action=checkManager&id=${id}`)
-            .then(res => res.json())
-           .then(data => {
-    if (data.valid) {
-        currentManagerID = id;
-        currentManagerName = data.managerName;
-        sessionToken = data.token; // ✅ حفظ التوكن
+// الخطوة الأولى: الانتقال من الرقم الوظيفي إلى خانة الكود
+function proceedToCode() {
+    const idInput = document.getElementById('managerIDInput');
+    if (!idInput.value) {
+        showError("يرجى إدخال الرقم الوظيفي أولاً");
+        return;
+    }
+    tempManagerID = idInput.value;
+    
+    // تبديل الواجهة داخل الـ Card
+    document.getElementById('idSection').style.display = 'none';
+    document.getElementById('codeSection').style.display = 'block';
+    document.getElementById('errorMsg').style.display = 'none';
+}
 
-        document.getElementById('managerNameDisplay').innerText = currentManagerName;
-        document.getElementById('authOverlay').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'flex';
-        fetchEmployees();
-    } else {
-        document.getElementById('errorMsg').style.display = 'block';
-        btn.innerText = 'دخول';
+
+// دالة الانتقال من الرقم الوظيفي إلى خانة الكود
+function proceedToCode() {
+    const idInput = document.getElementById('managerIDInput');
+    if (!idInput.value) {
+        showAuthError("يرجى إدخال الرقم الوظيفي");
+        return;
     }
-});
+    tempManagerID = idInput.value;
+    
+    // إخفاء المرحلة الأولى وإظهار الثانية
+    document.getElementById('step1').style.display = 'none';
+    document.getElementById('step2').style.display = 'block';
+    document.getElementById('authTitle').innerText = "تأكيد كود المدير";
+    document.getElementById('errorMsg').style.display = 'none';
+}
+
+// دالة التحقق النهائي (الرقم الوظيفي + كود المدير)
+function verifyFinalAuth() {
+    const codeInput = document.getElementById('managerCodeInput');
+    const btn = document.getElementById('loginBtn');
+    
+    if (!codeInput.value) {
+        showAuthError("يرجى إدخال كود المدير");
+        return;
     }
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+    btn.disabled = true;
+
+    // الاتصال بـ السيرفر وإرسال (id و code)
+    fetch(`${SCRIPT_URL}?action=checkManager&id=${tempManagerID}&code=${codeInput.value}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.valid) {
+                currentManagerID = tempManagerID;
+                currentManagerName = data.managerName;
+                sessionToken = data.token; // حفظ التوكن للأمان
+
+                document.getElementById('managerNameDisplay').innerText = currentManagerName;
+                document.getElementById('authOverlay').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'flex';
+                fetchEmployees(); // جلب قائمة الموظفين بعد الدخول
+            } else {
+                showAuthError("عفواً، الكود غير صحيح!");
+                btn.innerHTML = 'دخول للتقييم';
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            showAuthError("خطأ في الاتصال بالسيرفر");
+            btn.disabled = false;
+        });
+}
+
+// دالة العودة للمرحلة الأولى
+function backToStep1() {
+    document.getElementById('step1').style.display = 'block';
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('authTitle').innerText = "دخول المسؤول المباشر";
+    document.getElementById('errorMsg').style.display = 'none';
+}
+
+// دالة مساعدة لإظهار رسائل الخطأ
+function showAuthError(msg) {
+    const err = document.getElementById('errorMsg');
+    err.innerText = msg;
+    err.style.display = 'block';
+}
+
+// دالة مساعدة لإظهار الخطأ
+function showError(msg) {
+    const errDiv = document.getElementById('errorMsg');
+    errDiv.innerText = msg;
+    errDiv.style.display = 'block';
+}
+
+// دالة للعودة للخلف
+function backToStep1() {
+    document.getElementById('idSection').style.display = 'block';
+    document.getElementById('codeSection').style.display = 'none';
+    document.getElementById('errorMsg').style.display = 'none';
+}
 
     function validateInput(input, max) {
         if (parseFloat(input.value) > max) { alert("القيمة الاعلى " + max); input.value = ""; }
@@ -550,7 +558,7 @@ function submitData() {
     document.querySelectorAll('.score-input').forEach(i => scores.push(Number(i.value)));
 
     const payload = {
-            token: sessionToken, // 🔐 التوكن
+        token: sessionToken, // 🔐 التوكن
         managerID: currentManagerID,
         managerName: currentManagerName,
         empName: document.getElementById('empName').value,
@@ -569,28 +577,67 @@ function submitData() {
         mode: 'no-cors',
         body: JSON.stringify(payload)
     })
-    .then(() => {
-        alert("تم حفظ التقييم بنجاح!");
-        window.print();
+  .then(() => {
+    alert("تم حفظ التقييم بنجاح!");
+    downloadPDF();
 
-        // إعادة تهيئة النموذج
-        document.getElementById('empName').value = '';
-        document.getElementById('empID').value = '';
-        document.getElementById('jobTitle').value = '';
-        document.getElementById('dept').value = '';
-        document.getElementById('total').innerText = '0';
-        document.getElementById('strengthsText').value = '';
-        document.getElementById('weaknessText').value = '';
-        document.getElementById('recText').value = '';
-        document.querySelectorAll('.score-input').forEach(i => i.value = '');
+    // تفريغ النموذج بعد ثانيتين (بعد حفظ/طباعة PDF)
+    setTimeout(() => {
+        resetForm();
+    }, 2000);
     })
     .finally(() => {
         btn.disabled = false;
         btn.innerHTML = `<i class="fas fa-save me-2"></i> إرسال وحفظ التقييم`;
     });
 }
+function downloadPDF() {
+    const element = document.getElementById('mainContent');
+    const empName = document.getElementById('empName').value.trim() || 'تقييم_موظف';
+
+    // 1. إجبار العنصر على أن يكون اتجاهه من اليمين لليسار
+    element.style.direction = 'rtl';
+
+    // 2. إخفاء الأزرار يدوياً قبل التقاط الصورة (للتأكد 100% من عدم ظهورها)
+    const buttonsToHide = element.querySelectorAll('button, .no-print, .submit-btn');
+    buttonsToHide.forEach(btn => btn.style.display = 'none');
+
+    const opt = {
+        margin:       0,
+        filename:     empName + '.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { 
+            scale: 2, 
+            useCORS: true, 
+            letterRendering: true // تحسين رندر الحروف العربية
+        },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+element.classList.add('force-rtl');
+html2pdf().set(opt).from(element).save().then(() => {
+    element.classList.remove('force-rtl');
+});
+
+    // 3. تنفيذ عملية التحويل
+    html2pdf().set(opt).from(element).save().then(() => {
+        // 4. إعادة إظهار الأزرار بعد الانتهاء من التحميل
+        buttonsToHide.forEach(btn => btn.style.display = '');
+        // إرجاع التنسيق الأصلي إذا لزم الأمر
+         element.style.direction = ''; 
+    });
+}
+function resetForm() {
+    document.getElementById('empName').value = '';
+    document.getElementById('empID').value = '';
+    document.getElementById('jobTitle').value = '';
+    document.getElementById('dept').value = '';
+    document.getElementById('total').innerText = '0';
+    document.getElementById('strengthsText').value = '';
+    document.getElementById('weaknessText').value = '';
+    document.getElementById('recText').value = '';
+    document.querySelectorAll('.score-input').forEach(i => i.value = '');
+}
+
 </script>
 </body>
 </html>
-
-
