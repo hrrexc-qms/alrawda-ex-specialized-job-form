@@ -10,7 +10,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
     
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
  <style>
+   
     /* --- التنسيقات الأصلية التي أرفقتها (بدون حذف) --- */
     :root {
         --alrowda-green: #1a953e;
@@ -105,13 +108,14 @@ table {
 .rtl {
     direction: rtl !important;
     text-align: right !important;
+     
 }
 
 .rtl * {
     direction: rtl !important;
+    
     text-align: right !important;
 }
-
 </style>
 </head>
 <body>
@@ -130,23 +134,32 @@ table {
         <div id="step2" style="display:none;">
             <input type="password" id="managerCodeInput" class="form-control text-center mb-3" placeholder="أدخل كود التحقق الخاص بك" onkeypress="if(event.key==='Enter') verifyFinalAuth()">
             <button onclick="verifyFinalAuth()" id="loginBtn" class="btn btn-primary w-100 fw-bold" style="background-color: var(--alrowda-green); border:none;">دخول للتقييم</button>
-            <button onclick="backToStep1()" class="btn btn-link btn-sm mt-2 text-decoration-none text-muted text-black">رجوع</button>
+<button onclick="backToStep1()" class="btn btn-link btn-sm mt-2 text-decoration-none text-black">
+    <i class="bi bi-arrow-right-circle me-1"></i> رجوع
+</button>
         </div>
 
         <div id="errorMsg" class="text-danger mt-2 small" style="display:none;">البيانات المدخلة غير صحيحة!</div>
     </div>
 </div>
-
+<!-- <div id="modelTabs" class="d-flex justify-content-center mb-3 no-print" style="display:none !important;">
+    <button type="button" id="tabSpecialized" class="btn btn-outline-primary mx-2 active" onclick="switchModel('تخصصية')">
+        <i class="fas fa-user-gear me-1"></i> نموذج الوظائف التخصصية
+    </button>
+    <button type="button" id="tabSupervisory" class="btn btn-outline-primary mx-2" onclick="switchModel('إشرافية')">
+        <i class="fas fa-user-tie me-1"></i> نموذج الوظائف الإشرافية
+    </button>
+</div> -->
 <div id="mainContent" class="a4-container container" style="display:none;">
-    <div class="header-brand d-flex justify-content-between align-items-center">
-        <div class="title-text"><h5>نموذج تقييم أداء الوظائف التخصصية</h5></div>
+   <div class="header-brand d-flex justify-content-between align-items-center">
+        <div class="title-text"><h5 id="dynamicTitle">نموذج تقييم الأداء</h5></div>
         <img src="logo.jpeg" alt="Logo" style="height: 60px;">
     </div>
 
     <main style="position: relative; background-color: #ffffff;  border-radius: 2%;">
         <table class="table table-bordered align-middle rtl">
             <tr>
-                <td class="bg-light-row" width="15%">اسم الموظف</td>
+                <td class="bg-light-row " width="15%">اسم الموظف</td>
                 <td width="35%">
                     <div class="suggestions-container">
                         <input type="text" id="empName" class="form-control form-control-sm border-0" placeholder="ابدأ بكتابة الاسم..." oninput="handleSearch(this.value)" autocomplete="off">
@@ -202,10 +215,10 @@ table {
                 </tbody>
         </table>
        
-         <div class="text-muted small text-black fw-bold"
-         style="position:absolute; bottom:-3px; left:10px;">
-        REC-QF-20-30/Rev02
-    </div>
+        <div id="docReferenceCode" class="text-muted small text-black fw-bold text-black" 
+     style="position:absolute; bottom:-3px; left:10px;">
+    REC-QF-20-30/Rev02
+</div>
     </main>
  
     <div class="mt-3 text-center no-print">
@@ -217,434 +230,344 @@ table {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script>
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxXSamuk8UUrzIe8ffHbs_SMDTrZ28QoBidnBgllLFVPDuOmP9iNzXu7AH2WaBekFmoRA/exec'; 
-
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxdCT7V_SUKCjjWblOFrBcErHS1ENK3ugVbePaNG9VMkz0UUms_FqLr34wWClrpCiyo/exec'; 
     let currentManagerID = "";
     let currentManagerName = "";
-    let allEmployees = []; // تخزين قائمة الموظفين هنا
+    let currentManagerRole = ""; 
+    let allEmployees = []; 
     let sessionToken = "";
+    let tempManagerID = ""; 
 
-    const evalItems = [
-       {id: 1,  txt: "مستوى تحقيقه للأهداف المنشودة", max: 4, id2: 12, txt2: "مستوى معرفته بتفاصيل مهام وظيفته", max2: 4},
-       {id: 2,  txt: "درجة الاعتماد عليه وتحمل المسئولية", max: 4, id2: 13, txt2: "مستوى خبرته في أداء مهام وظيفته", max2: 4},
-       {id: 3,  txt: "مستوى تعاونه مع زملائه في العمل", max: 4, id2: 14, txt2: "السرعة في إنجاز الأعمال المكلف بها", max2: 4},
-       {id: 4,  txt: "مستوى تعاونه مع رؤسائه في العمل", max: 4, id2: 15, txt2: "الدقة في أداء الأعمال المكلف بها", max2: 4},
-       {id: 5,  txt: "مستوى تعاونه مع الآخرين", max: 4, id2: 16, txt2: "إمكانية تحمله لمهام ومسؤوليات أعلى", max2: 4},
-       {id: 6,  txt: "البديهة وحسن التصرف", max: 4, id2: 17, txt2: "الحرص على ترتيب وتنظيم ونظافة مكان عمله", max2: 4},
-       {id: 7,  txt: "مدى قدرته على تطوير وابتكار أساليب العمل", max: 4, id2: 18, txt2: "مدى التزامه بأوقات الدوام الرسمي", max2: 4},
-       {id: 8,  txt: "رغبته في التعلم والتطوير الذاتي", max: 4, id2: 19, txt2: "مدى التزامه بمعايير وأخلاقيات العمل", max2: 4},
-       {id: 9,  txt: "مدى احترامه لأنظمة وتعليمات العمل", max: 4, id2: 20, txt2: "مدى اهتمامه بحسن مظهره ونظافته", max2: 4},
-       {id: 10, txt: "العمل بروح الفريق", max: 4, id2: 21, txt2: "المحافظة على أدوات العمل", max2: 4},
-       {id: 11, txt: "التأخير والغياب", max: 10, id2: 22, txt2: "المخالفات الوظيفية", max2: 10},
+    const specializedItems = [
+        {id: 1,  txt: "مستوى تحقيقه للأهداف المنشودة", max: 4, id2: 12, txt2: "مستوى معرفته بتفاصيل مهام وظيفته", max2: 4},
+        {id: 2,  txt: "درجة الاعتماد عليه وتحمل المسئولية", max: 4, id2: 13, txt2: "مستوى خبرته في أداء مهام وظيفته", max2: 4},
+        {id: 3,  txt: "مستوى تعاونه مع زملائه في العمل", max: 4, id2: 14, txt2: "السرعة في إنجاز الأعمال المكلف بها", max2: 4},
+        {id: 4,  txt: "مستوى تعاونه مع رؤسائه في العمل", max: 4, id2: 15, txt2: "الدقة في أداء الأعمال المكلف بها", max2: 4},
+        {id: 5,  txt: "مستوى تعاونه مع الآخرين", max: 4, id2: 16, txt2: "إمكانية تحمله لمهام ومسؤوليات أعلى", max2: 4},
+        {id: 6,  txt: "البديهة وحسن التصرف", max: 4, id2: 17, txt2: "الحرص على ترتيب وتنظيم ونظافة مكان عمله", max2: 4},
+        {id: 7,  txt: "مدى قدرته على تطوير وابتكار أساليب العمل", max: 4, id2: 18, txt2: "مدى التزامه بأوقات الدوام الرسمي", max2: 4},
+        {id: 8,  txt: "رغبته في التعلم والتطوير الذاتي", max: 4, id2: 19, txt2: "مدى التزامه بمعايير وأخلاقيات العمل", max2: 4},
+        {id: 9,  txt: "مدى احترامه لأنظمة وتعليمات العمل", max: 4, id2: 20, txt2: "مدى اهتمامه بحسن مظهره ونظافته", max2: 4},
+        {id: 10, txt: "العمل بروح الفريق", max: 4, id2: 21, txt2: "المحافظة على أدوات العمل", max2: 4},
+        {id: 11, txt: "التأخير والغياب", max: 10, id2: 22, txt2: "المخالفات الوظيفية", max2: 10},
     ];
-document.addEventListener('DOMContentLoaded', function() {
-    // الضغط على Enter في حقل الرقم الوظيفي
-    const loginInput = document.getElementById('managerIDInput');
-    if (loginInput) {
-        loginInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') proceedToCode();
-        });
-    }
 
-    // الضغط على Enter في حقل الكود
-    const codeInput = document.getElementById('managerCodeInput');
-    if (codeInput) {
-        codeInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') verifyManager();
-        });
-    }
-});
+    const supervisoryItems = [
+        {id: 1,  txt: "القدرة على القيادة والتوجيه", max: 4, id2: 12, txt2: "التخطيط وتنظيم العمل", max2: 4},
+        {id: 2,  txt: "اتخاذ القرارات وحل المشكلات", max: 4, id2: 13, txt2: "تطوير ورفع كفاءة المرؤوسين", max2: 4},
+        {id: 3,  txt: "المتابعة والرقابة على الأداء", max: 4, id2: 14, txt2: "القدرة على التفويض الفعال", max2: 4},
+        {id: 4,  txt: "إدارة الوقت وتحديد الأولويات", max: 4, id2: 15, txt2: "تحمل المسؤولية وضغط العمل", max2: 4},
+        {id: 5,  txt: "المساهمة في الأهداف الاستراتيجية", max: 4, id2: 16, txt2: "الالتزام بالأنظمة واللوائح", max2: 4},
+        {id: 6,  txt: "الابتكار وتطوير أساليب العمل", max: 4, id2: 17, txt2: "مهارات التواصل الفعال", max2: 4},
+        {id: 7,  txt: "العدالة والموضوعية مع المرؤوسين", max: 4, id2: 18, txt2: "سرية المعلومات والأمانة", max2: 4},
+        {id: 8,  txt: "تحقيق النتائج المستهدفة للقسم", max: 4, id2: 19, txt2: "إعداد التقارير الفنية بدقة", max2: 4},
+        {id: 9,  txt: "العمل بروح الفريق الواحد", max: 4, id2: 20, txt2: "تطوير الذات والتعلم المستمر", max2: 4},
+        {id: 10, txt: "القدوة الحسنة للموظفين", max: 4, id2: 21, txt2: "المحافظة على موارد العمل", max2: 4},
+        {id: 11, txt: "الالتزام بالدوام الرسمي", max: 10, id2: 22, txt2: "المخالفات الإدارية", max2: 10},
+    ];
 
- const body = document.getElementById('evalBody');
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginInput = document.getElementById('managerIDInput');
+        if (loginInput) loginInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') proceedToCode(); });
 
-evalItems.forEach(item => {
-    body.innerHTML += `
-        <tr>
-            <td style="background-color:#faa619; color:white">${item.id}</td>
-            <td class="text-start ps-2">${item.txt}</td>
-            <td class="max-score-col">${item.max}</td>
-            <td>
-                <input type="text"
-                       class="score-input"
-                       inputmode="numeric"
-                       onkeydown="return allowOnlyPositiveNumbers(event)"
-                       oninput="validateScore(this, ${item.max})">
-            </td>
+        const codeInput = document.getElementById('managerCodeInput');
+        if (codeInput) codeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') verifyFinalAuth(); });
+    });
 
-            <td style="background-color:#faa619; color:white">${item.id2}</td>
-            <td class="text-start ps-2">${item.txt2}</td>
-            <td class="max-score-col">${item.max2}</td>
-            <td>
-                <input type="text"
-                       class="score-input"
-                       inputmode="numeric"
-                       onkeydown="return allowOnlyPositiveNumbers(event)"
-                       oninput="validateScore(this, ${item.max2})">
-            </td>
-        </tr>`;
-});
-
-function allowOnlyPositiveNumbers(e) {
-    // منع السالب، الأسهم، e، + 
-    if (
-        e.key === '-' ||
-        e.key === '+' ||
-        e.key === 'e' ||
-        e.key === 'E' ||
-        e.key === 'ArrowUp' ||
-        e.key === 'ArrowDown'
-    ) {
-        return false;
-    }
-    return true;
-}
-
-function allowDecimal(e) {
-    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
-    if (allowedKeys.includes(e.key)) return true;
-
-    if (e.key === '-' || e.key === '+') return false;
-
-    // السماح بنقطة واحدة فقط
-    if (e.key === '.') {
-        if (e.target.value.includes('.')) return false;
-        return true;
-    }
-
-    // التحقق من عدد الأرقام بعد الفاصلة (بحد أقصى رقمين)
-    if (e.target.value.includes('.')) {
-        const parts = e.target.value.split('.');
-        // إذا كان مؤشر الكتابة بعد الفاصلة وكان هناك رقمين فعلاً، امنع الإدخال
-        if (parts[1].length >= 2 && e.target.selectionStart > e.target.value.indexOf('.')) {
-            return false;
+    // دالة تبديل النماذج عبر التبويبات
+    function switchModel(type) {
+        renderTable(type);
+        // تحديث شكل الأزرار
+        const tabSpec = document.getElementById('tabSpecialized');
+        const tabSup = document.getElementById('tabSupervisory');
+        if(tabSpec && tabSup) {
+            tabSpec.classList.toggle('active', type === 'تخصصية');
+            tabSup.classList.toggle('active', type === 'إشرافية');
         }
+        sum(); // إعادة حساب المجموع للتأكد
     }
 
-    if (!/^[0-9]$/.test(e.key)) return false;
-    return true;
-}
-function validateScore(input, max) {
-    // 1. تنظيف الإدخال من أي رموز غير الأرقام والنقطة
-    input.value = input.value.replace(/[^0-9.]/g, '');
+    // بناء الجدول ديناميكياً وتحديث كود النموذج
+    function renderTable(role) {
+        const body = document.getElementById('evalBody');
+        const title = document.getElementById('dynamicTitle');
+        const docCode = document.getElementById('docReferenceCode'); 
 
-    // 2. التعامل مع الأجزاء العشرية
-    const parts = input.value.split('.');
-    if (parts.length > 2) {
-        // إذا وجد أكثر من نقطة، خذ أول جزئين فقط
-        input.value = parts[0] + '.' + parts[1];
+        if(!body || !title) return;
+        
+        body.innerHTML = "";
+        
+        let items;
+        if (role === "Executive" || role === "إشرافية") {
+            items = supervisoryItems;
+            title.innerText = "نموذج تقييم أداء الوظائف الإشرافية";
+            if(docCode) {
+                docCode.innerText = "REC-QF-20-29/Rev02";
+                docCode.style.setProperty('color', '#000', 'important');
+                docCode.style.fontWeight = "900";
+            }
+        } else {
+            items = specializedItems;
+            title.innerText = "نموذج تقييم أداء الوظائف التخصصية";
+            if(docCode) {
+                docCode.innerText = "REC-QF-20-30/Rev02";
+                docCode.style.setProperty('color', '#000', 'important');
+                docCode.style.fontWeight = "900";
+            }
+        }
+
+        items.forEach(item => {
+            body.innerHTML += `
+                <tr>
+                    <td style="background-color:#faa619; color:white; text-align:center;">${item.id}</td>
+                    <td class="text-start ps-2">${item.txt}</td>
+                    <td class="max-score-col" style="text-align:center;">${item.max}</td>
+                    <td style="text-align:center;"><input type="text" class="score-input" inputmode="numeric" onkeydown="return allowOnlyPositiveNumbers(event)" oninput="validateScore(this, ${item.max})"></td>
+                    <td style="background-color:#faa619; color:white; text-align:center;">${item.id2}</td>
+                    <td class="text-start ps-2">${item.txt2}</td>
+                    <td class="max-score-col" style="text-align:center;">${item.max2}</td>
+                    <td style="text-align:center;"><input type="text" class="score-input" inputmode="numeric" onkeydown="return allowOnlyPositiveNumbers(event)" oninput="validateScore(this, ${item.max2})"></td>
+                </tr>`;
+        });
     }
-    
-    // 3. منع أكثر من رقمين بعد الفاصلة (في حال اللصق مثلاً)
-    if (parts.length === 2 && parts[1].length > 2) {
-        input.value = parts[0] + '.' + parts[1].substring(0, 2);
+
+    function proceedToCode() {
+        const idInput = document.getElementById('managerIDInput');
+        if (!idInput.value) { showAuthError("يرجى إدخال الرقم الوظيفي"); return; }
+        
+        tempManagerID = idInput.value;
+        document.getElementById('step1').style.display = 'none';
+        document.getElementById('step2').style.display = 'block';
+        document.getElementById('authTitle').innerText = "تأكيد كود المدير";
+        document.getElementById('errorMsg').style.display = 'none';
     }
 
-    // 4. منع تجاوز الحد الأعلى
-    const val = parseFloat(input.value);
-    if (!isNaN(val) && val > max) {
-        input.value = max;
+    function verifyFinalAuth() {
+        const codeInput = document.getElementById('managerCodeInput');
+        const btn = document.getElementById('loginBtn');
+        if (!codeInput.value) { showAuthError("يرجى إدخال كود المدير"); return; }
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
+        btn.disabled = true;
+
+        fetch(`${SCRIPT_URL}?action=checkManager&id=${tempManagerID}&code=${codeInput.value}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.valid) {
+                    currentManagerID = tempManagerID;
+                    currentManagerName = data.managerName;
+                    currentManagerRole = data.role; 
+                    sessionToken = data.token;
+
+                    document.getElementById('managerNameDisplay').innerText = currentManagerName;
+                    document.getElementById('authOverlay').style.display = 'none';
+                    document.getElementById('mainContent').style.display = 'flex';
+                    
+                    // إظهار التبويبات فقط للمدير التنفيذي
+                    const tabs = document.getElementById('modelTabs');
+                    if (tabs) {
+                        tabs.style.display = (currentManagerRole === "Executive") ? "flex" : "none";
+                    }
+
+                    renderTable(currentManagerRole); 
+                    fetchEmployees(); 
+                } else {
+                    showAuthError("عفواً، الكود غير صحيح!");
+                    btn.innerHTML = 'دخول للتقييم';
+                    btn.disabled = false;
+                }
+            })
+            .catch(err => {
+                showAuthError("خطأ في الاتصال بالسيرفر");
+                btn.disabled = false;
+            });
     }
 
-    // 5. تحديث الإجمالي
-    sum();
-}
+    function handleSearch(query) {
+        const list = document.getElementById('suggestionsList');
+        if (!list) return;
+        list.innerHTML = '';
+        if (!query || query.length < 1) { list.style.display = 'none'; return; }
 
-    // جلب قائمة الموظفين عند الدخول
+        const q = query.trim().toLowerCase();
+        
+        const filtered = allEmployees.filter(emp => {
+            const matchesQuery = emp.name.toLowerCase().includes(q) || emp.id.toString().startsWith(q);
+            if (currentManagerRole === "Executive") {
+                return matchesQuery;
+            } else {
+                return matchesQuery && emp.category === "تخصصية";
+            }
+        });
+
+        if (filtered.length === 0) { list.style.display = 'none'; return; }
+
+        list.innerHTML = filtered.map(emp => `
+            <div class="suggestion-item" onclick="selectEmployee('${emp.name}','${emp.id}','${emp.job}','${emp.dept}','${emp.category}')">
+                <div class="item-content"><i class="fas fa-user"></i> <span class="emp-name-text">${emp.name}</span></div>
+                <span class="emp-id-badge">${emp.category} | ${emp.id}</span>
+            </div>
+        `).join('');
+        list.style.display = 'block';
+    }
+
     function fetchEmployees() {
         fetch(`${SCRIPT_URL}?action=getEmployees`)
             .then(res => res.json())
             .then(data => { allEmployees = data; })
-            .catch(err => console.error("خطأ في جلب الموظفين:", err));
-    }
-function handleSearch(query) {
-    const list = document.getElementById('suggestionsList');
-    list.innerHTML = '';
-
-    if (!query || query.length < 1) {
-        list.style.display = 'none';
-        return;
+            .catch(err => console.error("خطأ:", err));
     }
 
-    const q = query.trim().toLowerCase();
-
-    const filtered = allEmployees.filter(emp => {
-        const firstName = emp.name.trim().split(' ')[0].toLowerCase();
-        return firstName.startsWith(q) || emp.id.toString().startsWith(q);
-    });
-
-    if (filtered.length === 0) {
-        list.style.display = 'none';
-        return;
-    }
-
-    list.innerHTML = filtered.map(emp => `
-        <div class="suggestion-item"
-             onclick="selectEmployee('${emp.name}','${emp.id}','${emp.job}','${emp.dept}')">
-            <div class="item-content">
-                <i class="fas fa-user"></i>
-                <span class="emp-name-text">${emp.name}</span>
-            </div>
-            <span class="emp-id-badge">${emp.id}</span>
-        </div>
-    `).join('');
-
-    list.style.display = 'block';
-}
-
-
-
-    function selectEmployee(name, id, job, dept) {
+    function selectEmployee(name, id, job, dept, category) {
         document.getElementById('empID').value = id;
         document.getElementById('empName').value = name;
         document.getElementById('jobTitle').value = job;
         document.getElementById('dept').value = dept;
         document.getElementById('suggestionsList').style.display = 'none';
+        
+        // عند اختيار موظف، نقوم بتبديل التبويب والجدول تلقائياً
+        if (category) {
+            switchModel(category);
+        }
     }
 
- // المتغيرات المطلوبة للتحكم في الحالة
-let tempManagerID = ""; 
-
-// الخطوة الأولى: الانتقال من الرقم الوظيفي إلى خانة الكود
-function proceedToCode() {
-    const idInput = document.getElementById('managerIDInput');
-    if (!idInput.value) {
-        showError("يرجى إدخال الرقم الوظيفي أولاً");
-        return;
-    }
-    tempManagerID = idInput.value;
-    
-    // تبديل الواجهة داخل الـ Card
-    document.getElementById('idSection').style.display = 'none';
-    document.getElementById('codeSection').style.display = 'block';
-    document.getElementById('errorMsg').style.display = 'none';
-}
-
-
-// دالة الانتقال من الرقم الوظيفي إلى خانة الكود
-function proceedToCode() {
-    const idInput = document.getElementById('managerIDInput');
-    if (!idInput.value) {
-        showAuthError("يرجى إدخال الرقم الوظيفي");
-        return;
-    }
-    tempManagerID = idInput.value;
-    
-    // إخفاء المرحلة الأولى وإظهار الثانية
-    document.getElementById('step1').style.display = 'none';
-    document.getElementById('step2').style.display = 'block';
-    document.getElementById('authTitle').innerText = "تأكيد كود المدير";
-    document.getElementById('errorMsg').style.display = 'none';
-}
-
-// دالة التحقق النهائي (الرقم الوظيفي + كود المدير)
-function verifyFinalAuth() {
-    const codeInput = document.getElementById('managerCodeInput');
-    const btn = document.getElementById('loginBtn');
-    
-    if (!codeInput.value) {
-        showAuthError("يرجى إدخال كود المدير");
-        return;
+    function allowOnlyPositiveNumbers(e) {
+        if (['-', '+', 'e', 'E', 'ArrowUp', 'ArrowDown'].includes(e.key)) return false;
+        return true;
     }
 
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحقق...';
-    btn.disabled = true;
-
-    // الاتصال بـ السيرفر وإرسال (id و code)
-    fetch(`${SCRIPT_URL}?action=checkManager&id=${tempManagerID}&code=${codeInput.value}`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.valid) {
-                currentManagerID = tempManagerID;
-                currentManagerName = data.managerName;
-                sessionToken = data.token; // حفظ التوكن للأمان
-
-                document.getElementById('managerNameDisplay').innerText = currentManagerName;
-                document.getElementById('authOverlay').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'flex';
-                fetchEmployees(); // جلب قائمة الموظفين بعد الدخول
-            } else {
-                showAuthError("عفواً، الكود غير صحيح!");
-                btn.innerHTML = 'دخول للتقييم';
-                btn.disabled = false;
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            showAuthError("خطأ في الاتصال بالسيرفر");
-            btn.disabled = false;
-        });
-}
-
-// دالة العودة للمرحلة الأولى
-function backToStep1() {
-    document.getElementById('step1').style.display = 'block';
-    document.getElementById('step2').style.display = 'none';
-    document.getElementById('authTitle').innerText = "دخول المسؤول المباشر";
-    document.getElementById('errorMsg').style.display = 'none';
-}
-
-// دالة مساعدة لإظهار رسائل الخطأ
-function showAuthError(msg) {
-    const err = document.getElementById('errorMsg');
-    err.innerText = msg;
-    err.style.display = 'block';
-}
-
-// دالة مساعدة لإظهار الخطأ
-function showError(msg) {
-    const errDiv = document.getElementById('errorMsg');
-    errDiv.innerText = msg;
-    errDiv.style.display = 'block';
-}
-
-// دالة للعودة للخلف
-function backToStep1() {
-    document.getElementById('idSection').style.display = 'block';
-    document.getElementById('codeSection').style.display = 'none';
-    document.getElementById('errorMsg').style.display = 'none';
-}
-
-    function validateInput(input, max) {
-        if (parseFloat(input.value) > max) { alert("القيمة الاعلى " + max); input.value = ""; }
+    function validateScore(input, max) {
+        input.value = input.value.replace(/[^0-9.]/g, '');
+        const parts = input.value.split('.');
+        if (parts.length > 2) input.value = parts[0] + '.' + parts[1];
+        if (parts.length === 2 && parts[1].length > 2) input.value = parts[0] + '.' + parts[1].substring(0, 2);
+        const val = parseFloat(input.value);
+        if (!isNaN(val) && val > max) input.value = max;
         sum();
     }
 
     function sum() {
         let total = 0;
         document.querySelectorAll('.score-input').forEach(i => total += (Number(i.value) || 0));
-        document.getElementById('total').innerText = total;
+        document.getElementById('total').innerText = total.toFixed(2).replace(/\.00$/, '');
     }
 
-function submitData() {
-
-    // التحقق من اختيار الموظف
-    if (!document.getElementById('empName').value) { 
-        alert("اختر موظفاً أولاً"); 
-        return; 
-    }
-
-    // ✅ التحقق من تعبئة جميع بنود التقييم
-    let allScoresFilled = true;
-
-    document.querySelectorAll('.score-input').forEach(input => {
-        if (input.value === '' || isNaN(input.value)) {
-            allScoresFilled = false;
-            input.style.border = "2px solid red"; // تمييز الحقل الناقص
-        } else {
-            input.style.border = "1px solid #ddd";
-        }
-    });
-
-    if (!allScoresFilled) {
-        alert("يجب تعبئة جميع بنود التقييم قبل إرسال النموذج");
-        return;
-    }
-
-    // ✅ التحقق من تعبئة الحقول الإلزامية النصية
-    const strengths = document.getElementById('strengthsText').value.trim();
-    const weaknesses = document.getElementById('weaknessText').value.trim();
-    const recommendations = document.getElementById('recText').value.trim();
-
-    if (!strengths || !weaknesses || !recommendations) {
-        alert("يجب تعبئة نقاط القوة ونقاط الضعف والتوصيات والمقترحات قبل إرسال التقييم");
-        return;
-    }
-
-    const btn = document.getElementById('sendBtn');
-    btn.disabled = true;
-    btn.innerHTML = "جاري الحفظ...";
-
-    const scores = [];
-    document.querySelectorAll('.score-input').forEach(i => scores.push(Number(i.value)));
-
-    const payload = {
-        token: sessionToken, // 🔐 التوكن
-        managerID: currentManagerID,
-        managerName: currentManagerName,
-        empName: document.getElementById('empName').value,
-        empID: document.getElementById('empID').value,
-        jobTitle: document.getElementById('jobTitle').value,
-        dept: document.getElementById('dept').value,
-        scores: scores,
-        total: document.getElementById('total').innerText,
-        strengths: strengths,
-        weaknesses: weaknesses,
-        recommendations: recommendations
-    };
-
-    fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify(payload)
-    })
-  .then(() => {
-    alert("تم حفظ التقييم بنجاح!");
-    downloadPDF();
-
-    // تفريغ النموذج بعد ثانيتين (بعد حفظ/طباعة PDF)
-    setTimeout(() => {
-        resetForm();
-    }, 2000);
-    })
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = `<i class="fas fa-save me-2"></i> إرسال وحفظ التقييم`;
-    });
-}function downloadPDF() {
-    const element = document.getElementById('mainContent');
-    const empName = document.getElementById('empName').value.trim() || 'تقييم_موظف';
-
-    // 1. إجبار العنصر على أن يكون اتجاهه من اليمين لليسار (لجميع العناصر)
-    element.style.direction = 'rtl';
-    element.classList.add('force-rtl');
-
-    // 2. إخفاء الأزرار قبل الحفظ
-    const buttonsToHide = element.querySelectorAll('button, .no-print, .submit-btn');
-    buttonsToHide.forEach(btn => btn.style.display = 'none');
-
-    const opt = {
-        margin: 0,
-        filename: empName + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
-        jsPDF: { unit: 'mm', format: [210, 297], orientation: 'portrait' }
-    };
-
-    // 3. تنفيذ الحفظ مرة واحدة
-    html2pdf()
-        .set(opt)
-        .from(element)
-        .save()
-        .then(() => {
-            // إعادة إظهار الأزرار
-            buttonsToHide.forEach(btn => btn.style.display = '');
-
-            // إزالة RTL المؤقت
-            element.classList.remove('force-rtl');
-            element.style.direction = '';
-
-            // 4. إعادة تهيئة النموذج لتقييم موظف جديد
-            resetForm();
-
-            // 5. وضع التركيز على حقل اختيار الموظف الجديد
-            document.getElementById('empName').focus();
+    function submitData() {
+        if (!document.getElementById('empName').value) { alert("اختر موظفاً أولاً"); return; }
+        
+        let allScoresFilled = true;
+        document.querySelectorAll('.score-input').forEach(input => {
+            if (input.value === '' || isNaN(input.value)) {
+                allScoresFilled = false;
+                input.style.border = "2px solid red";
+            } else {
+                input.style.border = "1px solid #ddd";
+            }
         });
-}
 
-// دالة إعادة تهيئة النموذج
-function resetForm() {
-    document.getElementById('empName').value = '';
-    document.getElementById('empID').value = '';
-    document.getElementById('jobTitle').value = '';
-    document.getElementById('dept').value = '';
-    if(document.getElementById('total')) document.getElementById('total').innerText = '0';
-    document.getElementById('strengthsText').value = '';
-    document.getElementById('weaknessText').value = '';
-    document.getElementById('recText').value = '';
-    document.querySelectorAll('.score-input').forEach(i => i.value = '');
-}
+        if (!allScoresFilled) { alert("يرجى تعبئة جميع بنود التقييم"); return; }
 
+        const strengths = document.getElementById('strengthsText').value.trim();
+        const weaknesses = document.getElementById('weaknessText').value.trim();
+        const recommendations = document.getElementById('recText').value.trim();
 
+        if (!strengths || !weaknesses || !recommendations) { alert("يرجى تعبئة جميع الملاحظات الختامية"); return; }
+
+        const btn = document.getElementById('sendBtn');
+        btn.disabled = true;
+        btn.innerHTML = "جاري الحفظ...";
+
+        const scores = [];
+        document.querySelectorAll('.score-input').forEach(i => scores.push(Number(i.value)));
+
+        const payload = {
+            token: sessionToken,
+            managerID: currentManagerID,
+            managerName: currentManagerName,
+            empName: document.getElementById('empName').value,
+            empID: document.getElementById('empID').value,
+            jobTitle: document.getElementById('jobTitle').value,
+            dept: document.getElementById('dept').value,
+            scores: scores,
+            total: document.getElementById('total').innerText,
+            strengths: strengths,
+            weaknesses: weaknesses,
+            recommendations: recommendations
+        };
+
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            alert("تم حفظ التقييم بنجاح!");
+            downloadPDF();
+            setTimeout(() => { resetForm(); }, 2000);
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fas fa-save me-2"></i> إرسال وحفظ التقييم`;
+        });
+    }
+
+    function downloadPDF() {
+        const element = document.getElementById('mainContent');
+        const empName = document.getElementById('empName').value.trim() || 'تقييم_موظف';
+        
+        element.classList.add('pdf-print-mode');
+        element.style.direction = 'rtl';
+        // إخفاء التبويبات وأي أزرار عند الطباعة
+        const buttonsToHide = element.querySelectorAll('button, .no-print, .submit-btn, #suggestionsList, #modelTabs');
+        buttonsToHide.forEach(btn => btn.style.display = 'none');
+
+        const opt = {
+            filename: empName + '.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true, 
+                letterRendering: true,
+                scrollX: 0,
+                scrollY: 0
+            },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            element.classList.remove('pdf-print-mode');
+            buttonsToHide.forEach(btn => btn.style.display = '');
+            // إعادة إخفاء التبويبات إذا لم يكن المدير تنفيذي
+            if (currentManagerRole !== "Executive") {
+                document.getElementById('modelTabs').style.display = 'none';
+            }
+        });
+    }
+
+    function resetForm() {
+        document.getElementById('empName').value = '';
+        document.getElementById('empID').value = '';
+        document.getElementById('jobTitle').value = '';
+        document.getElementById('dept').value = '';
+        document.getElementById('total').innerText = '0';
+        document.getElementById('strengthsText').value = '';
+        document.getElementById('weaknessText').value = '';
+        document.getElementById('recText').value = '';
+        document.querySelectorAll('.score-input').forEach(i => i.value = '');
+    }
+
+    function backToStep1() {
+        document.getElementById('step1').style.display = 'block';
+        document.getElementById('step2').style.display = 'none';
+        document.getElementById('authTitle').innerText = "دخول المسؤول المباشر";
+        document.getElementById('errorMsg').style.display = 'none';
+    }
+
+    function showAuthError(msg) {
+        const err = document.getElementById('errorMsg');
+        err.innerText = msg;
+        err.style.display = 'block';
+    }
 </script>
 </body>
 </html>
