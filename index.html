@@ -451,10 +451,19 @@ table {
         document.querySelectorAll('.score-input').forEach(i => total += (Number(i.value) || 0));
         document.getElementById('total').innerText = total.toFixed(2).replace(/\.00$/, '');
     }
+function submitData() {
+        // --- الإضافة الجديدة للتحقق من الحقول الوظيفية ---
+        const empName = document.getElementById('empName').value;
+        const empID = document.getElementById('empID').value;
+        const jobTitle = document.getElementById('jobTitle').value;
+        const dept = document.getElementById('dept').value;
 
-    function submitData() {
-        if (!document.getElementById('empName').value) { alert("اختر موظفاً أولاً"); return; }
-        
+        if (!empName || !empID || !jobTitle || !dept) { 
+            alert("خطأ: يجب اختيار الموظف من قائمة المقترحات لضمان تعبئة (الاسم، الرقم الوظيفي، الوظيفة، والإدارة) بشكل آلي قبل الإرسال."); 
+            return; 
+        }
+        // --- نهاية الإضافة ---
+
         let allScoresFilled = true;
         document.querySelectorAll('.score-input').forEach(input => {
             if (input.value === '' || isNaN(input.value)) {
@@ -484,10 +493,10 @@ table {
             token: sessionToken,
             managerID: currentManagerID,
             managerName: currentManagerName,
-            empName: document.getElementById('empName').value,
-            empID: document.getElementById('empID').value,
-            jobTitle: document.getElementById('jobTitle').value,
-            dept: document.getElementById('dept').value,
+            empName: empName,
+            empID: empID,
+            jobTitle: jobTitle,
+            dept: dept,
             scores: scores,
             total: document.getElementById('total').innerText,
             strengths: strengths,
@@ -504,6 +513,10 @@ table {
             alert("تم حفظ التقييم بنجاح!");
             downloadPDF();
             setTimeout(() => { resetForm(); }, 2000);
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            alert("حدث خطأ أثناء الحفظ");
         })
         .finally(() => {
             btn.disabled = false;
@@ -571,3 +584,4 @@ table {
 </script>
 </body>
 </html>
+
